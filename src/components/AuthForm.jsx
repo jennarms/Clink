@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { supabase } from '../supabaseClient';
 
 export default function AuthForm() {
-  const [authMode, setAuthMode] = useState('login'); // 'login' | 'signup'
+  const [authMode, setAuthMode] = useState('login'); // 'login' | 'signup' | 'forgot'
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -59,7 +59,6 @@ export default function AuthForm() {
 
     const displayName = `${firstName.trim()} ${lastName.trim()}`.trim();
 
-    // Pass user metadata to Supabase Auth. The DB trigger handles profile insertion automatically.
     const { error: authError } = await supabase.auth.signUp({
       email: email.trim(),
       password,
@@ -100,6 +99,22 @@ export default function AuthForm() {
     if (error) throw error;
   };
 
+  const handleForgotPassword = async () => {
+    const resetEmail = email.trim() || identifier.trim();
+
+    if (!resetEmail || !resetEmail.includes('@')) {
+      throw new Error('Please enter a valid email address.');
+    }
+
+    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+
+    if (error) throw error;
+
+    setMessage('Password reset link sent! Please check your email inbox.');
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -108,8 +123,10 @@ export default function AuthForm() {
     try {
       if (authMode === 'signup') {
         await handleSignUp();
-      } else {
+      } else if (authMode === 'login') {
         await handleLogin();
+      } else if (authMode === 'forgot') {
+        await handleForgotPassword();
       }
     } catch (err) {
       setMessage(`Error: ${err.message}`);
@@ -121,7 +138,11 @@ export default function AuthForm() {
   return (
     <div>
       <h2 className="text-lg font-semibold text-center mb-6 text-slate-600">
-        {authMode === 'login' ? 'Welcome Back' : 'Create an Account'}
+        {authMode === 'login'
+          ? 'Welcome Back'
+          : authMode === 'signup'
+          ? 'Create an Account'
+          : 'Reset Your Password'}
       </h2>
 
       {message && (
@@ -131,7 +152,7 @@ export default function AuthForm() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {authMode === 'signup' ? (
+        {authMode === 'signup' && (
           <>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -240,7 +261,9 @@ export default function AuthForm() {
               )}
             </div>
           </>
-        ) : (
+        )}
+
+        {authMode === 'login' && (
           <>
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 text-slate-600">
@@ -257,9 +280,22 @@ export default function AuthForm() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 text-slate-600">
-                Password
-              </label>
+              <div className="flex justify-between items-center mb-1.5">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600">
+                  Password
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail(identifier.includes('@') ? identifier : '');
+                    setAuthMode('forgot');
+                    setMessage('');
+                  }}
+                  className="text-xs text-[#2D5A27] hover:underline font-medium cursor-pointer"
+                >
+                  Forgot Password?
+                </button>
+              </div>
               <input
                 type="password"
                 required
@@ -272,25 +308,64 @@ export default function AuthForm() {
           </>
         )}
 
+        {authMode === 'forgot' && (
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 text-slate-600">
+              Email Address
+            </label>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-[#1A1A1A] placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 focus:border-[#2D5A27] shadow-sm"
+              placeholder="you@example.com"
+            />
+            <p className="mt-1 text-xs text-slate-500">
+              Enter the email address associated with your account to receive a reset link.
+            </p>
+          </div>
+        )}
+
         <button
           type="submit"
           disabled={loading || (authMode === 'signup' && confirmPassword && password !== confirmPassword)}
           className="w-full py-2.5 px-4 bg-[#2D5A27] hover:bg-[#23471e] text-white font-semibold text-sm rounded-xl transition disabled:opacity-50 mt-2 cursor-pointer shadow-sm"
         >
-          {loading ? 'Processing...' : authMode === 'login' ? 'Sign In' : 'Sign Up'}
+          {loading
+            ? 'Processing...'
+            : authMode === 'login'
+            ? 'Sign In'
+            : authMode === 'signup'
+            ? 'Sign Up'
+            : 'Send Reset Link'}
         </button>
       </form>
 
       <div className="mt-4 text-center">
-        <button
-          onClick={() => {
-            setAuthMode(authMode === 'login' ? 'signup' : 'login');
-            setMessage('');
-          }}
-          className="text-sm text-[#2D5A27] hover:underline cursor-pointer font-medium"
-        >
-          {authMode === 'login' ? "Don't have an account? Sign Up" : 'Already have an account? Sign In'}
-        </button>
+        {authMode === 'forgot' ? (
+          <button
+            onClick={() => {
+              setAuthMode('login');
+              setMessage('');
+            }}
+            className="text-sm text-[#2D5A27] hover:underline cursor-pointer font-medium"
+          >
+            Back to Sign In
+          </button>
+        ) : (
+          <button
+            onClick={() => {
+              setAuthMode(authMode === 'login' ? 'signup' : 'login');
+              setMessage('');
+            }}
+            className="text-sm text-[#2D5A27] hover:underline cursor-pointer font-medium"
+          >
+            {authMode === 'login'
+              ? "Don't have an account? Sign Up"
+              : 'Already have an account? Sign In'}
+          </button>
+        )}
       </div>
     </div>
   );
