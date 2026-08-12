@@ -2,28 +2,21 @@ import { useState } from 'react';
 import { supabase } from '../supabaseClient';
 
 export default function AuthForm() {
-  // Modes: 'login' | 'signup' | 'verify'
-  const [authMode, setAuthMode] = useState('login');
+  const [authMode, setAuthMode] = useState('login'); // 'login' | 'signup'
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
-  // Login identifier (email or username)
   const [identifier, setIdentifier] = useState('');
-
-  // Sign up fields
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [username, setUsername] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
 
-  // OTP field
-  const [otp, setOtp] = useState('');
-
   // Non-blocking password strength check
   const getPasswordStrength = (pass) => {
     if (!pass) return null;
-
     let score = 0;
     if (pass.length >= 8) score += 1;
     if (/[A-Z]/.test(pass) && /[a-z]/.test(pass)) score += 1;
@@ -36,7 +29,7 @@ export default function AuthForm() {
         color: 'text-amber-600',
         bgColor: 'bg-amber-500',
         width: 'w-1/3',
-        hint: 'Weak password. Add numbers or symbols for better security, though simple passwords are allowed.',
+        hint: 'Weak password. Simple passwords are still allowed.',
       };
     }
     if (score <= 3) {
@@ -45,7 +38,7 @@ export default function AuthForm() {
         color: 'text-blue-600',
         bgColor: 'bg-blue-500',
         width: 'w-2/3',
-        hint: 'Good password! Add special characters to make it extra secure.',
+        hint: 'Good password!',
       };
     }
     return {
@@ -53,56 +46,36 @@ export default function AuthForm() {
       color: 'text-emerald-600',
       bgColor: 'bg-emerald-500',
       width: 'w-full',
-      hint: 'Great! That is a strong password.',
+      hint: 'Great! Strong password.',
     };
   };
 
   const strength = getPasswordStrength(password);
 
-  // Step 1: Handle Initial Sign Up
   const handleSignUp = async () => {
-    const { error } = await supabase.auth.signUp({
+    if (password !== confirmPassword) {
+      throw new Error('Passwords do not match.');
+    }
+
+    const displayName = `${firstName.trim()} ${lastName.trim()}`.trim();
+
+    // Pass user metadata to Supabase Auth. The DB trigger handles profile insertion automatically.
+    const { error: authError } = await supabase.auth.signUp({
       email: email.trim(),
       password,
-    });
-
-    if (error) throw error;
-
-    // Switch view to OTP input screen
-    setAuthMode('verify');
-    setMessage(`Verification code sent to ${email}. Please check your inbox.`);
-  };
-
-  // Step 2: Verify OTP and Create Profile
-  const handleVerifyOtp = async () => {
-    const { data, error } = await supabase.auth.verifyOtp({
-      email: email.trim(),
-      token: otp.trim(),
-      type: 'signup',
-    });
-
-    if (error) throw error;
-
-    if (data.user) {
-      const displayName = `${firstName.trim()} ${lastName.trim()}`.trim();
-
-      // Save profile only after successful email verification
-      const { error: profileError } = await supabase.from('profiles').insert([
-        {
-          id: data.user.id,
-          username: username.trim() || email.split('@')[0],
-          email: email.trim(),
+      options: {
+        data: {
+          username: username.trim() || email.trim().split('@')[0],
           display_name: displayName,
         },
-      ]);
+      },
+    });
 
-      if (profileError) console.error('Profile creation error:', profileError.message);
+    if (authError) throw authError;
 
-      setMessage('Email verified successfully! Logging you in...');
-    }
+    setMessage('Account created successfully!');
   };
 
-  // Handle Login (Email or Username)
   const handleLogin = async () => {
     let loginEmail = identifier.trim();
 
@@ -116,7 +89,6 @@ export default function AuthForm() {
       if (profileError || !profile?.email) {
         throw new Error('Username not found or invalid.');
       }
-
       loginEmail = profile.email;
     }
 
@@ -136,8 +108,6 @@ export default function AuthForm() {
     try {
       if (authMode === 'signup') {
         await handleSignUp();
-      } else if (authMode === 'verify') {
-        await handleVerifyOtp();
       } else {
         await handleLogin();
       }
@@ -151,9 +121,7 @@ export default function AuthForm() {
   return (
     <div>
       <h2 className="text-lg font-semibold text-center mb-6 text-slate-600">
-        {authMode === 'login' && 'Welcome Back'}
-        {authMode === 'signup' && 'Create an Account'}
-        {authMode === 'verify' && 'Verify Your Email'}
+        {authMode === 'login' ? 'Welcome Back' : 'Create an Account'}
       </h2>
 
       {message && (
@@ -163,26 +131,7 @@ export default function AuthForm() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* OTP VERIFICATION VIEW */}
-        {authMode === 'verify' && (
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 text-slate-600">
-              6-Digit OTP Code
-            </label>
-            <input
-              type="text"
-              required
-              maxLength={6}
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-center tracking-widest font-mono text-lg text-[#1A1A1A] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 focus:border-[#2D5A27] shadow-sm"
-              placeholder="123456"
-            />
-          </div>
-        )}
-
-        {/* SIGN UP VIEW */}
-        {authMode === 'signup' && (
+        {authMode === 'signup' ? (
           <>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -254,31 +203,44 @@ export default function AuthForm() {
                 placeholder="••••••••"
               />
 
-              {/* NON-BLOCKING PASSWORD STRENGTH WARNING */}
               {strength && (
                 <div className="mt-2 text-xs space-y-1">
                   <div className="flex justify-between items-center">
                     <span className="text-slate-500">Password strength:</span>
-                    <span className={`font-semibold ${strength.color}`}>
-                      {strength.label}
-                    </span>
+                    <span className={`font-semibold ${strength.color}`}>{strength.label}</span>
                   </div>
                   <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full transition-all duration-300 ${strength.bgColor} ${strength.width}`}
-                    />
+                    <div className={`h-full transition-all duration-300 ${strength.bgColor} ${strength.width}`} />
                   </div>
-                  <p className="text-slate-500 text-[11px] leading-tight">
-                    {strength.hint}
-                  </p>
+                  <p className="text-slate-500 text-[11px] leading-tight">{strength.hint}</p>
                 </div>
               )}
             </div>
-          </>
-        )}
 
-        {/* LOGIN VIEW */}
-        {authMode === 'login' && (
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 text-slate-600">
+                Confirm Password
+              </label>
+              <input
+                type="password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className={`w-full px-3.5 py-2.5 bg-white border rounded-xl text-[#1A1A1A] placeholder-slate-400 text-sm focus:outline-none focus:ring-2 shadow-sm ${
+                  confirmPassword && password !== confirmPassword
+                    ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500'
+                    : 'border-slate-300 focus:ring-[#2D5A27]/20 focus:border-[#2D5A27]'
+                }`}
+                placeholder="••••••••"
+              />
+              {confirmPassword && password !== confirmPassword && (
+                <p className="mt-1 text-xs text-red-500">
+                  Passwords do not match.
+                </p>
+              )}
+            </div>
+          </>
+        ) : (
           <>
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 text-slate-600">
@@ -312,43 +274,23 @@ export default function AuthForm() {
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || (authMode === 'signup' && confirmPassword && password !== confirmPassword)}
           className="w-full py-2.5 px-4 bg-[#2D5A27] hover:bg-[#23471e] text-white font-semibold text-sm rounded-xl transition disabled:opacity-50 mt-2 cursor-pointer shadow-sm"
         >
-          {loading
-            ? 'Processing...'
-            : authMode === 'login'
-            ? 'Sign In'
-            : authMode === 'signup'
-            ? 'Send OTP Code'
-            : 'Verify & Complete Sign Up'}
+          {loading ? 'Processing...' : authMode === 'login' ? 'Sign In' : 'Sign Up'}
         </button>
       </form>
 
       <div className="mt-4 text-center">
-        {authMode === 'verify' ? (
-          <button
-            onClick={() => {
-              setAuthMode('signup');
-              setMessage('');
-            }}
-            className="text-sm text-[#2D5A27] hover:underline cursor-pointer font-medium"
-          >
-            ← Back to Sign Up
-          </button>
-        ) : (
-          <button
-            onClick={() => {
-              setAuthMode(authMode === 'login' ? 'signup' : 'login');
-              setMessage('');
-            }}
-            className="text-sm text-[#2D5A27] hover:underline cursor-pointer font-medium"
-          >
-            {authMode === 'login'
-              ? "Don't have an account? Sign Up"
-              : 'Already have an account? Sign In'}
-          </button>
-        )}
+        <button
+          onClick={() => {
+            setAuthMode(authMode === 'login' ? 'signup' : 'login');
+            setMessage('');
+          }}
+          className="text-sm text-[#2D5A27] hover:underline cursor-pointer font-medium"
+        >
+          {authMode === 'login' ? "Don't have an account? Sign Up" : 'Already have an account? Sign In'}
+        </button>
       </div>
     </div>
   );
