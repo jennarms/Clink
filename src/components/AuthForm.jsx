@@ -11,6 +11,28 @@ const PREVIEW_LINKS = [
   { emoji: '🌐', label: 'Portfolio' },
 ];
 
+// Usernames that would collide with an app route (e.g. linkie.com/login
+// would be ambiguous with the login page) or otherwise cause confusion.
+// Keep this in sync with RESERVED_PATHS in App.jsx as you add routes.
+const RESERVED_USERNAMES = [
+  'login',
+  'signup',
+  'reset-password',
+  'dashboard',
+  'admin',
+  'api',
+  'settings',
+  'profile',
+  'home',
+  'about',
+  'help',
+  'support',
+  'linkie',
+  'www',
+  'null',
+  'undefined',
+];
+
 export default function AuthForm() {
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'signup' | 'forgot'
   const [loading, setLoading] = useState(false);
@@ -68,13 +90,20 @@ export default function AuthForm() {
     }
 
     const displayName = `${firstName.trim()} ${lastName.trim()}`.trim();
+    const finalUsername = username.trim() || email.trim().split('@')[0];
+
+    if (RESERVED_USERNAMES.includes(finalUsername.toLowerCase())) {
+      throw new Error(
+        `"${finalUsername}" isn't available as a username. Please choose another.`
+      );
+    }
 
     const { error: authError } = await supabase.auth.signUp({
       email: email.trim(),
       password,
       options: {
         data: {
-          username: username.trim() || email.trim().split('@')[0],
+          username: finalUsername,
           display_name: displayName,
         },
       },
@@ -154,7 +183,7 @@ export default function AuthForm() {
 
   const headerText =
     authMode === 'login'
-      ? 'Login to your account'
+      ? 'Welcome Back'
       : authMode === 'signup'
       ? 'Create an Account'
       : 'Reset Your Password';
@@ -387,10 +416,10 @@ export default function AuthForm() {
   // ---------- LOGIN: split-screen layout ----------
   if (authMode === 'login') {
     return (
-      <div className="min-h-screen flex flex-col lg:flex-row bg-white">
+      <div className="min-h-screen flex flex-col md:flex-row bg-white">
         {/* Left: about panel */}
-        <div className="lg:w-[45%] bg-[#EAF3E5] px-8 py-14 sm:px-14 lg:py-0 flex items-center relative overflow-hidden">
-          <div className="max-w-md mx-auto lg:mx-0">
+        <div className="md:w-[45%] bg-[#EAF3E5] px-8 py-14 sm:px-14 md:py-0 flex items-center relative overflow-hidden">
+          <div className="max-w-md mx-auto md:mx-0">
             <span className="inline-block text-xs font-semibold tracking-widest uppercase text-[#2D5A27]/70 mb-4">
               linkie.com/yourname
             </span>
@@ -433,6 +462,9 @@ export default function AuthForm() {
         {/* Right: sign-in form */}
         <div className="flex-1 flex items-center justify-center px-6 py-14 sm:px-10">
           <div className="w-full max-w-sm">
+            <h1 className="text-2xl font-bold text-center text-[#2D5A27] mb-2 flex items-center justify-center gap-1.5">
+              Linkie 🔗
+            </h1>
             <h2 className="text-lg font-semibold text-center mb-6 text-slate-600">
               {headerText}
             </h2>
@@ -451,22 +483,27 @@ export default function AuthForm() {
     );
   }
 
-  // ---------- SIGNUP / FORGOT: original centered layout ----------
+  // ---------- SIGNUP / FORGOT: centered card, full page ----------
   return (
-    <div>
-      <h2 className="text-lg font-semibold text-center mb-6 text-slate-600">
-        {headerText}
-      </h2>
+    <div className="min-h-screen bg-[#F9F8F3] flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+        <h1 className="text-3xl font-bold text-center text-[#2D5A27] mb-2 flex items-center justify-center gap-2">
+          Linkie 🔗
+        </h1>
+        <h2 className="text-lg font-semibold text-center mb-6 text-slate-600">
+          {headerText}
+        </h2>
 
-      {MessageBanner}
+        {MessageBanner}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {authMode === 'signup' && SignupFields}
-        {authMode === 'forgot' && ForgotFields}
-        {SubmitButton}
-      </form>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {authMode === 'signup' && SignupFields}
+          {authMode === 'forgot' && ForgotFields}
+          {SubmitButton}
+        </form>
 
-      {ToggleNav}
+        {ToggleNav}
+      </div>
     </div>
   );
 }
