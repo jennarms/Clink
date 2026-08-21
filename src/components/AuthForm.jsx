@@ -189,13 +189,13 @@ export default function AuthForm() {
       : 'Reset Your Password';
 
   const MessageBanner = message ? (
-    <div className="mb-4 p-3 rounded-xl bg-[#2D5A27]/10 text-sm text-[#2D5A27] font-medium text-center border border-[#2D5A27]/20">
+    <div className="mb-3 p-2.5 rounded-xl bg-[#2D5A27]/10 text-sm text-[#2D5A27] font-medium text-center border border-[#2D5A27]/20">
       {message}
     </div>
   ) : null;
 
   const ToggleNav = (
-    <div className="mt-4 text-center">
+    <div className="mt-3 text-center">
       {authMode === 'forgot' ? (
         <button
           onClick={() => {
@@ -226,7 +226,7 @@ export default function AuthForm() {
     <button
       type="submit"
       disabled={loading || (authMode === 'signup' && confirmPassword && password !== confirmPassword)}
-      className="w-full py-2.5 px-4 bg-[#2D5A27] hover:bg-[#23471e] text-white font-semibold text-sm rounded-xl transition disabled:opacity-50 mt-2 cursor-pointer shadow-sm"
+      className="w-full py-2 px-4 bg-[#2D5A27] hover:bg-[#23471e] text-white font-semibold text-sm rounded-xl transition disabled:opacity-50 mt-1 cursor-pointer shadow-sm"
     >
       {loading
         ? 'Processing...'
@@ -242,9 +242,9 @@ export default function AuthForm() {
 
   const SignupFields = (
     <>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2.5">
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 text-slate-600">
+          <label className="block text-xs font-semibold uppercase tracking-wider mb-1 text-slate-600">
             First Name <span className="text-red-500">*</span>
           </label>
           <input
@@ -252,27 +252,27 @@ export default function AuthForm() {
             required
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
-            className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-[#1A1A1A] placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 focus:border-[#2D5A27] shadow-sm"
+            className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-[#1A1A1A] placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 focus:border-[#2D5A27] shadow-sm"
             placeholder="Jane"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 text-slate-600">
+          <label className="block text-xs font-semibold uppercase tracking-wider mb-1 text-slate-600">
             Last Name
           </label>
           <input
             type="text"
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
-            className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-[#1A1A1A] placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 focus:border-[#2D5A27] shadow-sm"
+            className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-[#1A1A1A] placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 focus:border-[#2D5A27] shadow-sm"
             placeholder="Doe"
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 text-slate-600">
+        <label className="block text-xs font-semibold uppercase tracking-wider mb-1 text-slate-600">
           Username
         </label>
         <input
@@ -280,13 +280,13 @@ export default function AuthForm() {
           required
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-[#1A1A1A] placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 focus:border-[#2D5A27] shadow-sm"
+          className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-[#1A1A1A] placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 focus:border-[#2D5A27] shadow-sm"
           placeholder="yourname"
         />
       </div>
 
       <div>
-        <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 text-slate-600">
+        <label className="block text-xs font-semibold uppercase tracking-wider mb-1 text-slate-600">
           Email Address
         </label>
         <input
@@ -294,13 +294,13 @@ export default function AuthForm() {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-[#1A1A1A] placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 focus:border-[#2D5A27] shadow-sm"
+          className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-[#1A1A1A] placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 focus:border-[#2D5A27] shadow-sm"
           placeholder="you@example.com"
         />
       </div>
 
       <div>
-        <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 text-slate-600">
+        <label className="block text-xs font-semibold uppercase tracking-wider mb-1 text-slate-600">
           Password
         </label>
         <input
@@ -308,12 +308,12 @@ export default function AuthForm() {
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-[#1A1A1A] placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 focus:border-[#2D5A27] shadow-sm"
+          className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-[#1A1A1A] placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 focus:border-[#2D5A27] shadow-sm"
           placeholder="••••••••"
         />
 
         {strength && (
-          <div className="mt-2 text-xs space-y-1">
+          <div className="mt-1.5 text-xs space-y-1">
             <div className="flex justify-between items-center">
               <span className="text-slate-500">Password strength:</span>
               <span className={`font-semibold ${strength.color}`}>{strength.label}</span>
@@ -327,7 +327,7 @@ export default function AuthForm() {
       </div>
 
       <div>
-        <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 text-slate-600">
+        <label className="block text-xs font-semibold uppercase tracking-wider mb-1 text-slate-600">
           Confirm Password
         </label>
         <input
@@ -335,7 +335,7 @@ export default function AuthForm() {
           required
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          className={`w-full px-3.5 py-2.5 bg-white border rounded-xl text-[#1A1A1A] placeholder-slate-400 text-sm focus:outline-none focus:ring-2 shadow-sm ${
+          className={`w-full px-3.5 py-2 bg-white border rounded-xl text-[#1A1A1A] placeholder-slate-400 text-sm focus:outline-none focus:ring-2 shadow-sm ${
             confirmPassword && password !== confirmPassword
               ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500'
               : 'border-slate-300 focus:ring-[#2D5A27]/20 focus:border-[#2D5A27]'
@@ -352,7 +352,7 @@ export default function AuthForm() {
   const LoginFields = (
     <>
       <div>
-        <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 text-slate-600">
+        <label className="block text-xs font-semibold uppercase tracking-wider mb-1 text-slate-600">
           Email or Username
         </label>
         <input
@@ -360,13 +360,13 @@ export default function AuthForm() {
           required
           value={identifier}
           onChange={(e) => setIdentifier(e.target.value)}
-          className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-[#1A1A1A] placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 focus:border-[#2D5A27] shadow-sm"
+          className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-[#1A1A1A] placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 focus:border-[#2D5A27] shadow-sm"
           placeholder="you@example.com or yourname"
         />
       </div>
 
       <div>
-        <div className="flex justify-between items-center mb-1.5">
+        <div className="flex justify-between items-center mb-1">
           <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600">
             Password
           </label>
@@ -387,7 +387,7 @@ export default function AuthForm() {
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-[#1A1A1A] placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 focus:border-[#2D5A27] shadow-sm"
+          className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-[#1A1A1A] placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 focus:border-[#2D5A27] shadow-sm"
           placeholder="••••••••"
         />
       </div>
@@ -396,7 +396,7 @@ export default function AuthForm() {
 
   const ForgotFields = (
     <div>
-      <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 text-slate-600">
+      <label className="block text-xs font-semibold uppercase tracking-wider mb-1 text-slate-600">
         Email Address
       </label>
       <input
@@ -404,7 +404,7 @@ export default function AuthForm() {
         required
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-[#1A1A1A] placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 focus:border-[#2D5A27] shadow-sm"
+        className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-[#1A1A1A] placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 focus:border-[#2D5A27] shadow-sm"
         placeholder="you@example.com"
       />
       <p className="mt-1 text-xs text-slate-500">
@@ -418,38 +418,38 @@ export default function AuthForm() {
     return (
       <div className="min-h-screen flex flex-col md:flex-row bg-white">
         {/* Left: about panel */}
-        <div className="md:w-[45%] bg-[#EAF3E5] px-8 py-14 sm:px-14 md:py-0 flex items-center relative overflow-hidden">
-          <div className="max-w-md mx-auto md:mx-0">
-            <span className="inline-block text-xs font-semibold tracking-widest uppercase text-[#2D5A27]/70 mb-4">
+        <div className="md:w-[58%] bg-[#EAF3E5] px-8 py-14 sm:px-16 md:px-20 md:py-0 flex items-center relative overflow-hidden">
+          <div className="max-w-xl mx-auto">
+            <span className="inline-block text-xs font-semibold tracking-widest uppercase text-[#2D5A27]/70 mb-5">
               linkie.com/yourname
             </span>
-            <h1 className="text-3xl sm:text-4xl font-bold text-[#1A1A1A] leading-tight mb-4">
+            <h1 className="text-4xl sm:text-5xl font-bold text-[#1A1A1A] leading-tight mb-5">
               Every place people can find you.
               <br />
               One link.
             </h1>
-            <p className="text-slate-600 text-sm sm:text-base leading-relaxed mb-8">
+            <p className="text-slate-600 text-base sm:text-lg leading-relaxed mb-10">
               Add your music, your shop, your latest video — whatever you
               want someone to see first. Linkie keeps it all on one page,
               yours to arrange.
             </p>
 
             {/* Signature element: a mini preview of a Linkie page */}
-            <div className="bg-white rounded-2xl shadow-md border border-[#2D5A27]/10 p-4 max-w-xs -rotate-1">
-              <div className="flex items-center gap-2 mb-3 px-1">
-                <div className="w-7 h-7 rounded-full bg-[#2D5A27]/15" />
-                <div className="h-2 w-20 rounded-full bg-[#2D5A27]/15" />
+            <div className="bg-white rounded-2xl shadow-md border border-[#2D5A27]/10 p-6 max-w-md -rotate-1">
+              <div className="flex items-center gap-2 mb-4 px-1">
+                <div className="w-8 h-8 rounded-full bg-[#2D5A27]/15" />
+                <div className="h-2.5 w-24 rounded-full bg-[#2D5A27]/15" />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 {PREVIEW_LINKS.map((link, i) => (
                   <div
                     key={link.label}
-                    className={`flex items-center gap-3 bg-[#EAF3E5] rounded-xl px-3 py-2.5 transition-transform hover:-translate-y-0.5 ${
+                    className={`flex items-center gap-3 bg-[#EAF3E5] rounded-xl px-4 py-3 transition-transform hover:-translate-y-0.5 ${
                       i % 2 === 0 ? 'rotate-0' : 'rotate-[0.5deg]'
                     }`}
                   >
-                    <span className="text-base leading-none">{link.emoji}</span>
-                    <span className="text-xs font-medium text-[#1A1A1A]">
+                    <span className="text-lg leading-none">{link.emoji}</span>
+                    <span className="text-sm font-medium text-[#1A1A1A]">
                       {link.label}
                     </span>
                   </div>
@@ -460,18 +460,18 @@ export default function AuthForm() {
         </div>
 
         {/* Right: sign-in form */}
-        <div className="flex-1 flex items-center justify-center px-6 py-14 sm:px-10">
+        <div className="flex-1 flex items-center justify-center px-6 py-10 sm:px-10">
           <div className="w-full max-w-sm">
-            <h1 className="text-2xl font-bold text-center text-[#2D5A27] mb-2 flex items-center justify-center gap-1.5">
+            <h1 className="text-2xl font-bold text-center text-[#2D5A27] mb-1 flex items-center justify-center gap-1.5">
               Linkie 🔗
             </h1>
-            <h2 className="text-lg font-semibold text-center mb-6 text-slate-600">
+            <h2 className="text-lg font-semibold text-center mb-4 text-slate-600">
               {headerText}
             </h2>
 
             {MessageBanner}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-3">
               {LoginFields}
               {SubmitButton}
             </form>
@@ -486,17 +486,17 @@ export default function AuthForm() {
   // ---------- SIGNUP / FORGOT: centered card, full page ----------
   return (
     <div className="min-h-screen bg-[#F9F8F3] flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-        <h1 className="text-3xl font-bold text-center text-[#2D5A27] mb-2 flex items-center justify-center gap-2">
+      <div className="w-full max-w-md bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+        <h1 className="text-3xl font-bold text-center text-[#2D5A27] mb-1 flex items-center justify-center gap-2">
           Linkie 🔗
         </h1>
-        <h2 className="text-lg font-semibold text-center mb-6 text-slate-600">
+        <h2 className="text-lg font-semibold text-center mb-4 text-slate-600">
           {headerText}
         </h2>
 
         {MessageBanner}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
           {authMode === 'signup' && SignupFields}
           {authMode === 'forgot' && ForgotFields}
           {SubmitButton}
