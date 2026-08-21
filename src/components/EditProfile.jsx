@@ -10,7 +10,7 @@ function daysRemaining(lastChanged) {
   return Math.max(0, Math.ceil(USERNAME_COOLDOWN_DAYS - elapsedDays));
 }
 
-export default function EditProfile({ session, profile, onProfileUpdated, onClose }) {
+export default function EditProfile({ session, profile, onProfileUpdated }) {
   const userId = session?.user?.id;
 
   const [displayName, setDisplayName] = useState(profile?.display_name || '');
@@ -56,7 +56,6 @@ export default function EditProfile({ session, profile, onProfileUpdated, onClos
     try {
       let finalAvatarUrl = avatarUrl;
 
-      // Upload new avatar if one was picked
       if (avatarFile) {
         const ext = avatarFile.name.split('.').pop();
         const path = `${userId}/avatar.${ext}`;
@@ -67,11 +66,7 @@ export default function EditProfile({ session, profile, onProfileUpdated, onClos
 
         if (uploadError) throw uploadError;
 
-        const { data: publicUrlData } = supabase.storage
-          .from('avatars')
-          .getPublicUrl(path);
-
-        // cache-bust so the new image shows immediately
+        const { data: publicUrlData } = supabase.storage.from('avatars').getPublicUrl(path);
         finalAvatarUrl = `${publicUrlData.publicUrl}?t=${Date.now()}`;
       }
 
@@ -82,7 +77,6 @@ export default function EditProfile({ session, profile, onProfileUpdated, onClos
         username: username.trim(),
       };
 
-      // Only stamp the cooldown timer if the username actually changed
       if (usernameChanged) {
         updates.username_updated_at = new Date().toISOString();
       }
@@ -93,7 +87,6 @@ export default function EditProfile({ session, profile, onProfileUpdated, onClos
         .eq('id', userId);
 
       if (updateError) {
-        // Postgres unique violation on username
         if (updateError.code === '23505') {
           throw new Error('That username is already taken.');
         }
@@ -101,7 +94,6 @@ export default function EditProfile({ session, profile, onProfileUpdated, onClos
       }
 
       onProfileUpdated();
-      onClose();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -110,15 +102,9 @@ export default function EditProfile({ session, profile, onProfileUpdated, onClos
   };
 
   return (
-    <form onSubmit={handleSave} className="space-y-4 mb-6 p-4 bg-white border border-slate-200 rounded-xl shadow-sm">
-      <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-slate-700 text-sm">Edit Profile</h3>
-        <button type="button" onClick={onClose} className="text-xs text-slate-400 hover:text-slate-600 cursor-pointer">
-          Cancel
-        </button>
-      </div>
+    <form onSubmit={handleSave} className="space-y-4">
+      <h3 className="font-semibold text-slate-700 text-base">Edit Profile</h3>
 
-      {/* Avatar */}
       <div className="flex items-center gap-3">
         {avatarPreview ? (
           <img src={avatarPreview} alt="Avatar preview" className="w-14 h-14 rounded-full object-cover border border-slate-200" />
@@ -138,7 +124,6 @@ export default function EditProfile({ session, profile, onProfileUpdated, onClos
         </div>
       </div>
 
-      {/* Display name */}
       <div>
         <label className="text-xs font-medium text-slate-600 block mb-1">Nickname</label>
         <input
@@ -150,7 +135,6 @@ export default function EditProfile({ session, profile, onProfileUpdated, onClos
         />
       </div>
 
-      {/* Username */}
       <div>
         <label className="text-xs font-medium text-slate-600 block mb-1">Username</label>
         <input
@@ -166,7 +150,6 @@ export default function EditProfile({ session, profile, onProfileUpdated, onClos
         )}
       </div>
 
-      {/* Bio */}
       <div>
         <label className="text-xs font-medium text-slate-600 block mb-1">Bio</label>
         <textarea

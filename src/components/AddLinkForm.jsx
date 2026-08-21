@@ -15,13 +15,7 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
 
     const { error } = await supabase
       .from('links')
-      .insert([
-        {
-          user_id: userId,
-          title,
-          url: formattedUrl,
-        },
-      ]);
+      .insert([{ user_id: userId, title, url: formattedUrl }]);
 
     if (error) {
       alert(error.message);

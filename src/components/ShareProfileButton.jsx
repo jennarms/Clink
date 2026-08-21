@@ -10,7 +10,7 @@ export default function ShareProfileButton({ username }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      alert(url); // fallback if clipboard API is blocked
+      alert(url);
     }
   };
 
