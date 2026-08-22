@@ -43,6 +43,7 @@ export default function PublicProfile({ username }) {
         .select('id, title, url, description, icon, accent_color, style')
         .eq('user_id', profileData.id)
         .eq('is_active', true)
+        .order('sort_order', { ascending: true, nullsFirst: false })
         .order('created_at', { ascending: true });
 
       if (!isMounted) return;
