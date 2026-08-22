@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../supabaseClient';
+import RenderIcon from './RenderIcon';
 
 const PALETTE = [
   { name: 'Forest', value: '#2D5A27' },
@@ -13,7 +14,23 @@ const PALETTE = [
 ];
 
 const STYLES = ['solid', 'outline', 'soft'];
-const QUICK_ICONS = ['🔗', '🎵', '📸', '▶️', '🛍️', '🌐', '💬', '✨', '📝', '🎮'];
+
+const QUICK_ICONS = [
+  { id: 'facebook', label: 'Facebook' },
+  { id: 'instagram', label: 'Instagram' },
+  { id: 'x', label: 'X / Twitter' },
+  { id: 'youtube', label: 'YouTube' },
+  { id: 'tiktok', label: 'TikTok' },
+  { id: 'linkedin', label: 'LinkedIn' },
+  { id: 'pinterest', label: 'Pinterest' },
+  { id: 'whatsapp', label: 'WhatsApp' },
+  { id: 'discord', label: 'Discord' },
+  { id: 'link', label: 'Link' },
+  { id: 'globe', label: 'Website' },
+  { id: 'shop', label: 'Shop' },
+  { id: 'sparkles', label: 'Featured' },
+  { id: 'notes', label: 'Notes' },
+];
 
 function cardStyle(accent, style) {
   if (style === 'outline') {
@@ -43,14 +60,12 @@ export default function LinkItem({
 
   const [accent, setAccent] = useState(link.accent_color || '#2D5A27');
   const [style, setStyle] = useState(link.style || 'solid');
-  const [icon, setIcon] = useState(link.icon || '🔗');
+  const [icon, setIcon] = useState(link.icon || 'link');
 
   const [title, setTitle] = useState(link.title || '');
   const [url, setUrl] = useState(link.url || '');
   const [description, setDescription] = useState(link.description || '');
 
-  // Image editing — imagePreview starts as whatever's already saved,
-  // so the edit panel shows the current photo even before you touch it.
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(link.image_url || null);
   const [imageRemoved, setImageRemoved] = useState(false);
@@ -86,17 +101,13 @@ export default function LinkItem({
   const handleConfirmDelete = async () => {
     setDeleting(true);
     await onDeleteLink(link.id);
-    // No need to reset `deleting` on success — this component unmounts
-    // once the parent removes the link from its list. If onDeleteLink
-    // ever fails silently instead of throwing, this avoids a stuck
-    // spinner by resetting here too.
     setDeleting(false);
   };
 
   const styleDirty =
     accent !== (link.accent_color || '#2D5A27') ||
     style !== (link.style || 'solid') ||
-    icon !== (link.icon || '🔗');
+    icon !== (link.icon || 'link');
 
   const detailsDirty =
     title !== (link.title || '') ||
@@ -131,8 +142,6 @@ export default function LinkItem({
       ? url
       : `https://${url}`;
 
-    // Default to whatever's already saved; only touch it if the user
-    // picked a new file or explicitly removed the existing one.
     let image_url = link.image_url || null;
 
     if (imageFile) {
@@ -181,8 +190,6 @@ export default function LinkItem({
   const cardBoxStyle = cardStyle(accent, style);
   const isEditingAnything = activePanel !== 'none';
   const borderColor = isEditingAnything ? accent : isDragOver ? accent : 'transparent';
-  // Color for the drag handle glyph — needs to read against whichever
-  // background the current style produces (solid/outline/soft).
   const handleColor = style === 'solid' ? 'rgba(255,255,255,0.55)' : `${accent}80`;
 
   return (
@@ -215,8 +222,6 @@ export default function LinkItem({
             ⠿
           </span>
           <a href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 truncate flex-1 min-w-0">
-            {/* Photo, when there is one, replaces the emoji-in-a-square
-                entirely — it's shown as an actual image, not an icon. */}
             {link.image_url ? (
               <img
                 src={link.image_url}
@@ -228,7 +233,7 @@ export default function LinkItem({
                 className="w-11 h-11 shrink-0 rounded-xl flex items-center justify-center text-base leading-none"
                 style={{ background: style === 'solid' ? 'rgba(255,255,255,0.2)' : `${accent}1A` }}
               >
-                {link.icon || '🔗'}
+                <RenderIcon iconKey={link.icon} className="w-5 h-5" />
               </span>
             )}
             <div className="min-w-0">
@@ -280,7 +285,7 @@ export default function LinkItem({
         </div>
       </div>
 
-      {/* Edit panel — smooth height transition via grid-rows trick */}
+      {/* Edit panel */}
       <div
         className={`grid transition-[grid-template-rows] duration-300 ease-out ${
           activePanel === 'edit' ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
@@ -325,7 +330,7 @@ export default function LinkItem({
               <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Image</div>
               <label className="flex items-center justify-center gap-2 w-full py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-600 hover:bg-slate-50 cursor-pointer transition">
                 <span className="text-sm">🖼️</span>
-                {imagePreview ? 'Change image' : 'Add image (optional)'}
+                {imagePreview ? 'Change image' : 'Add Image as Icon (optional)'}
                 <input
                   type="file"
                   accept="image/*"
@@ -382,7 +387,7 @@ export default function LinkItem({
         </div>
       </div>
 
-      {/* Style panel — smooth height transition via grid-rows trick */}
+      {/* Style panel */}
       <div
         className={`grid transition-[grid-template-rows] duration-300 ease-out ${
           activePanel === 'style' ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
@@ -466,28 +471,22 @@ export default function LinkItem({
                 Used only when this link has no image.
               </div>
               <div className="flex flex-wrap items-center gap-1.5">
-                {QUICK_ICONS.map((em) => {
-                  const active = icon === em;
+                {QUICK_ICONS.map((item) => {
+                  const active = icon === item.id;
                   return (
                     <button
-                      key={em}
+                      key={item.id}
                       type="button"
-                      onClick={() => setIcon(em)}
-                      className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm cursor-pointer transition-colors border ${
-                        active ? 'border-[#2D5A27] bg-white shadow-sm' : 'border-transparent hover:bg-white/60'
+                      title={item.label}
+                      onClick={() => setIcon(item.id)}
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition-colors border ${
+                        active ? 'border-[#2D5A27] bg-white shadow-sm text-[#2D5A27]' : 'border-transparent text-slate-600 hover:bg-white/60'
                       }`}
                     >
-                      {em}
+                      <RenderIcon iconKey={item.id} className="w-4 h-4" />
                     </button>
                   );
                 })}
-                <input
-                  type="text"
-                  value={icon}
-                  onChange={(e) => setIcon(e.target.value.slice(0, 2))}
-                  placeholder="Custom"
-                  className="w-16 h-8 px-2 bg-white border border-slate-300 rounded-lg text-sm text-center focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 focus:border-[#2D5A27]"
-                />
               </div>
             </div>
 
@@ -512,7 +511,7 @@ export default function LinkItem({
         </div>
       </div>
 
-      {/* Delete confirmation panel — same transition pattern as edit/style */}
+      {/* Delete confirmation panel */}
       <div
         className={`grid transition-[grid-template-rows] duration-300 ease-out ${
           activePanel === 'delete' ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'

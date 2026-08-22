@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../supabaseClient';
+import RenderIcon from './RenderIcon';
 
 const PALETTE = [
   { name: 'Forest', value: '#2D5A27' },
@@ -13,7 +14,23 @@ const PALETTE = [
 ];
 
 const STYLES = ['solid', 'outline', 'soft'];
-const QUICK_ICONS = ['🔗', '🎵', '📸', '▶️', '🛍️', '🌐', '💬', '✨', '📝', '🎮'];
+
+const QUICK_ICONS = [
+  { id: 'facebook', label: 'Facebook' },
+  { id: 'instagram', label: 'Instagram' },
+  { id: 'x', label: 'X / Twitter' },
+  { id: 'youtube', label: 'YouTube' },
+  { id: 'tiktok', label: 'TikTok' },
+  { id: 'linkedin', label: 'LinkedIn' },
+  { id: 'pinterest', label: 'Pinterest' },
+  { id: 'whatsapp', label: 'WhatsApp' },
+  { id: 'discord', label: 'Discord' },
+  { id: 'link', label: 'Link' },
+  { id: 'globe', label: 'Website' },
+  { id: 'shop', label: 'Shop' },
+  { id: 'sparkles', label: 'Featured' },
+  { id: 'notes', label: 'Notes' },
+];
 
 function cardStyle(accent, style) {
   if (style === 'outline') {
@@ -34,12 +51,10 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
   const [imagePreview, setImagePreview] = useState(null);
   const [uploading, setUploading] = useState(false);
 
-  // Design — same defaults LinkItem falls back to, so a link created
-  // here looks identical to one that's never been styled.
   const [showDesign, setShowDesign] = useState(false);
   const [accent, setAccent] = useState('#2D5A27');
   const [style, setStyle] = useState('solid');
-  const [icon, setIcon] = useState('🔗');
+  const [icon, setIcon] = useState('link');
 
   const resetForm = () => {
     setTitle('');
@@ -50,7 +65,7 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
     setShowDesign(false);
     setAccent('#2D5A27');
     setStyle('solid');
-    setIcon('🔗');
+    setIcon('link');
     setOpen(false);
   };
 
@@ -83,8 +98,6 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
 
     let image_url = null;
 
-    // Upload the image first (if one was picked), so we have the
-    // public URL ready before we insert the link row.
     if (imageFile) {
       const ext = imageFile.name.split('.').pop();
       const path = `${userId}/${Date.now()}.${ext}`;
@@ -194,7 +207,7 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
       <div>
         <label className="flex items-center justify-center gap-2 w-full py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-600 hover:bg-slate-50 cursor-pointer transition">
           <span className="text-sm">🖼️</span>
-          {imageFile ? 'Change image' : 'Add image (optional)'}
+          {imageFile ? 'Change image' : 'Add Image as Icon (optional)'}
           <input
             type="file"
             accept="image/*"
@@ -222,8 +235,7 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
         )}
       </div>
 
-      {/* Design toggle — same picker LinkItem uses, opened up front
-          instead of having to edit the link after creating it. */}
+      {/* Design toggle */}
       <div>
         <button
           type="button"
@@ -231,7 +243,7 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
           className="flex items-center justify-center gap-2 w-full py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-600 hover:bg-slate-50 cursor-pointer transition"
         >
           <span className="text-sm">🎨</span>
-          {showDesign ? 'Hide design options' : 'Customize design (optional)'}
+          {showDesign ? 'Hide design options' : 'Customize Icon and Design (optional)'}
         </button>
 
         <div
@@ -317,28 +329,22 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
                   Used only if you don't add an image above.
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5">
-                  {QUICK_ICONS.map((em) => {
-                    const active = icon === em;
+                  {QUICK_ICONS.map((item) => {
+                    const active = icon === item.id;
                     return (
                       <button
-                        key={em}
+                        key={item.id}
                         type="button"
-                        onClick={() => setIcon(em)}
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm cursor-pointer transition-colors border ${
-                          active ? 'border-[#2D5A27] bg-white shadow-sm' : 'border-transparent hover:bg-slate-50'
+                        title={item.label}
+                        onClick={() => setIcon(item.id)}
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition-colors border ${
+                          active ? 'border-[#2D5A27] bg-white shadow-sm text-[#2D5A27]' : 'border-transparent text-slate-600 hover:bg-slate-50'
                         }`}
                       >
-                        {em}
+                        <RenderIcon iconKey={item.id} className="w-4 h-4" />
                       </button>
                     );
                   })}
-                  <input
-                    type="text"
-                    value={icon}
-                    onChange={(e) => setIcon(e.target.value.slice(0, 2))}
-                    placeholder="Custom"
-                    className="w-16 h-8 px-2 bg-white border border-slate-300 rounded-lg text-sm text-center focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 focus:border-[#2D5A27]"
-                  />
                 </div>
               </div>
             </div>
@@ -346,8 +352,7 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
         </div>
       </div>
 
-      {/* Live preview — mirrors exactly how this will render once added,
-          using whichever color/style/icon (or image) is currently chosen */}
+      {/* Live preview */}
       {title && (
         <div>
           <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400 mb-1.5">
@@ -361,7 +366,7 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
               {imagePreview ? (
                 <img src={imagePreview} alt="" className="w-full h-full object-cover" />
               ) : (
-                icon
+                <RenderIcon iconKey={icon} className="w-5 h-5" />
               )}
             </span>
             <div className="min-w-0">
