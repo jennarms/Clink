@@ -1,6 +1,19 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 
+// Same styling logic as LinkItem.jsx — keep these two in sync, since
+// this is what makes a link on the dashboard look identical once it's
+// live on the public page.
+function cardStyle(accent, style) {
+  if (style === 'outline') {
+    return { background: '#fff', border: '1.5px solid ' + accent, color: accent };
+  }
+  if (style === 'soft') {
+    return { background: accent + '14', border: '1px solid ' + accent + '33', color: accent };
+  }
+  return { background: accent, border: '1px solid ' + accent, color: '#fff' };
+}
+
 export default function PublicProfile({ username }) {
   const [status, setStatus] = useState('loading'); // 'loading' | 'found' | 'not-found'
   const [profile, setProfile] = useState(null);
@@ -27,7 +40,7 @@ export default function PublicProfile({ username }) {
 
       const { data: linksData, error: linksError } = await supabase
         .from('links')
-        .select('id, title, url, icon')
+        .select('id, title, url, description, icon, accent_color, style')
         .eq('user_id', profileData.id)
         .eq('is_active', true)
         .order('created_at', { ascending: true });
@@ -93,17 +106,37 @@ export default function PublicProfile({ username }) {
           <p className="text-xs text-slate-400 text-center">No links here yet.</p>
         ) : (
           <div className="space-y-3">
-            {links.map((link) => (
-              <a
-                key={link.id}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block w-full text-center py-3 px-4 bg-white border border-slate-200 rounded-xl font-medium text-sm text-[#1A1A1A] shadow-sm hover:border-[#2D5A27] hover:text-[#2D5A27] transition-colors"
-              >
-                {link.title}
-              </a>
-            ))}
+            {links.map((link) => {
+              const accent = link.accent_color || '#2D5A27';
+              const style = link.style || 'solid';
+              const boxStyle = cardStyle(accent, style);
+
+              return (
+                <a
+                  key={link.id}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 w-full py-3 px-4 rounded-xl font-medium text-sm shadow-sm transition-transform hover:-translate-y-0.5"
+                  style={boxStyle}
+                >
+                  <span
+                    className="w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-sm leading-none"
+                    style={{ background: style === 'solid' ? 'rgba(255,255,255,0.2)' : `${accent}1A` }}
+                  >
+                    {link.icon || '🔗'}
+                  </span>
+                  <div className="min-w-0 text-left">
+                    <div className="truncate">{link.title}</div>
+                    {link.description && (
+                      <div className="text-xs truncate mt-0.5" style={{ opacity: 0.85 }}>
+                        {link.description}
+                      </div>
+                    )}
+                  </div>
+                </a>
+              );
+            })}
           </div>
         )}
 

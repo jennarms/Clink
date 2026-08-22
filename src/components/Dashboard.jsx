@@ -35,11 +35,15 @@ export default function Dashboard({ session, profile }) {
     else refetchLinks();
   };
 
+  const handleUpdateLink = (id, patch) => {
+    setLinks((prev) => prev.map((l) => (l.id === id ? { ...l, ...patch } : l)));
+  };
+
   return (
     <div>
       {profile?.username && <ShareProfileButton username={profile.username} />}
       <AddLinkForm userId={userId} onLinkAdded={refetchLinks} />
-      <LinkList links={links} onDeleteLink={handleDeleteLink} />
+      <LinkList links={links} onDeleteLink={handleDeleteLink} onUpdateLink={handleUpdateLink} />
     </div>
   );
 }
