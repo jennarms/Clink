@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
+import RenderIcon from './RenderIcon';
 
 // Same styling logic as LinkItem.jsx — keep these two in sync, since
 // this is what makes a link on the dashboard look identical once it's
@@ -40,7 +41,7 @@ export default function PublicProfile({ username }) {
 
       const { data: linksData, error: linksError } = await supabase
         .from('links')
-        .select('id, title, url, description, icon, accent_color, style')
+        .select('id, title, url, description, icon, accent_color, style, image_url')
         .eq('user_id', profileData.id)
         .eq('is_active', true)
         .order('sort_order', { ascending: true, nullsFirst: false })
@@ -121,12 +122,20 @@ export default function PublicProfile({ username }) {
                   className="flex items-center gap-3 w-full py-3 px-4 rounded-xl font-medium text-sm shadow-sm transition-transform hover:-translate-y-0.5"
                   style={boxStyle}
                 >
-                  <span
-                    className="w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-sm leading-none"
-                    style={{ background: style === 'solid' ? 'rgba(255,255,255,0.2)' : `${accent}1A` }}
-                  >
-                    {link.icon || '🔗'}
-                  </span>
+                  {link.image_url ? (
+                    <img
+                      src={link.image_url}
+                      alt=""
+                      className="w-11 h-11 shrink-0 rounded-xl object-cover"
+                    />
+                  ) : (
+                    <span
+                      className="w-11 h-11 shrink-0 rounded-xl flex items-center justify-center text-base leading-none"
+                      style={{ background: style === 'solid' ? 'rgba(255,255,255,0.2)' : `${accent}1A` }}
+                    >
+                      <RenderIcon iconKey={link.icon} className="w-5 h-5" />
+                    </span>
+                  )}
                   <div className="min-w-0 text-left">
                     <div className="truncate">{link.title}</div>
                     {link.description && (
