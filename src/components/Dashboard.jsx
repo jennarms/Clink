@@ -76,6 +76,7 @@ export default function Dashboard({ session, profile }) {
       <AddLinkForm userId={userId} onLinkAdded={refetchLinks} />
       <LinkList
         links={links}
+        userId={userId}
         onDeleteLink={handleDeleteLink}
         onUpdateLink={handleUpdateLink}
         onReorderLinks={handleReorderLinks}

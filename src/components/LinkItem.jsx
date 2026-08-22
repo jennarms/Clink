@@ -27,6 +27,7 @@ function cardStyle(accent, style) {
 
 export default function LinkItem({
   link,
+  userId,
   onDeleteLink,
   onUpdateLink,
   isDragging,
@@ -38,6 +39,7 @@ export default function LinkItem({
 }) {
   const [activePanel, setActivePanel] = useState('none'); // 'none' | 'edit' | 'style' | 'delete'
   const [deleting, setDeleting] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const [accent, setAccent] = useState(link.accent_color || '#2D5A27');
   const [style, setStyle] = useState(link.style || 'solid');
@@ -47,8 +49,38 @@ export default function LinkItem({
   const [url, setUrl] = useState(link.url || '');
   const [description, setDescription] = useState(link.description || '');
 
+  // Image editing — imagePreview starts as whatever's already saved,
+  // so the edit panel shows the current photo even before you touch it.
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(link.image_url || null);
+  const [imageRemoved, setImageRemoved] = useState(false);
+
   const togglePanel = (panel) => {
     setActivePanel((prev) => (prev === panel ? 'none' : panel));
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please choose an image file.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image must be under 5MB.');
+      return;
+    }
+
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+    setImageRemoved(false);
+  };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setImageRemoved(true);
   };
 
   const handleConfirmDelete = async () => {
@@ -69,7 +101,9 @@ export default function LinkItem({
   const detailsDirty =
     title !== (link.title || '') ||
     url !== (link.url || '') ||
-    description !== (link.description || '');
+    description !== (link.description || '') ||
+    imageFile !== null ||
+    imageRemoved;
 
   const handleSaveStyle = async () => {
     const { error } = await supabase
@@ -91,23 +125,56 @@ export default function LinkItem({
     e.preventDefault();
     if (!title || !url) return;
 
+    setUploading(true);
+
     const formattedUrl = url.startsWith('http://') || url.startsWith('https://')
       ? url
       : `https://${url}`;
 
+    // Default to whatever's already saved; only touch it if the user
+    // picked a new file or explicitly removed the existing one.
+    let image_url = link.image_url || null;
+
+    if (imageFile) {
+      const ext = imageFile.name.split('.').pop();
+      const path = `${userId}/${link.id}-${Date.now()}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('link-images')
+        .upload(path, imageFile);
+
+      if (uploadError) {
+        alert(uploadError.message);
+        setUploading(false);
+        return;
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from('link-images')
+        .getPublicUrl(path);
+
+      image_url = publicUrlData.publicUrl;
+    } else if (imageRemoved) {
+      image_url = null;
+    }
+
     const { error } = await supabase
       .from('links')
-      .update({ title, url: formattedUrl, description: description || null })
+      .update({ title, url: formattedUrl, description: description || null, image_url })
       .eq('id', link.id);
+
+    setUploading(false);
 
     if (error) {
       alert(error.message);
       return;
     }
     if (onUpdateLink) {
-      onUpdateLink(link.id, { title, url: formattedUrl, description: description || null });
+      onUpdateLink(link.id, { title, url: formattedUrl, description: description || null, image_url });
     }
     setUrl(formattedUrl);
+    setImageFile(null);
+    setImageRemoved(false);
     setActivePanel('none');
   };
 
@@ -148,12 +215,22 @@ export default function LinkItem({
             ⠿
           </span>
           <a href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 truncate flex-1 min-w-0">
-            <span
-              className="w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-sm leading-none"
-              style={{ background: style === 'solid' ? 'rgba(255,255,255,0.2)' : `${accent}1A` }}
-            >
-              {link.icon || '🔗'}
-            </span>
+            {/* Photo, when there is one, replaces the emoji-in-a-square
+                entirely — it's shown as an actual image, not an icon. */}
+            {link.image_url ? (
+              <img
+                src={link.image_url}
+                alt=""
+                className="w-11 h-11 shrink-0 rounded-xl object-cover"
+              />
+            ) : (
+              <span
+                className="w-11 h-11 shrink-0 rounded-xl flex items-center justify-center text-base leading-none"
+                style={{ background: style === 'solid' ? 'rgba(255,255,255,0.2)' : `${accent}1A` }}
+              >
+                {link.icon || '🔗'}
+              </span>
+            )}
             <div className="min-w-0">
               <div className="font-semibold text-sm truncate group-hover:underline">
                 {link.title}
@@ -244,13 +321,45 @@ export default function LinkItem({
               />
             </div>
 
+            <div>
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Image</div>
+              <label className="flex items-center justify-center gap-2 w-full py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-600 hover:bg-slate-50 cursor-pointer transition">
+                <span className="text-sm">🖼️</span>
+                {imagePreview ? 'Change image' : 'Add image (optional)'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
+              </label>
+
+              {imagePreview && (
+                <div className="relative mt-2 rounded-xl overflow-hidden border border-slate-300">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-full h-40 object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 hover:bg-black/75 text-white text-xs leading-none flex items-center justify-center cursor-pointer transition"
+                    title="Remove image"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+            </div>
+
             <div className="flex gap-2 pt-1">
               <button
                 type="submit"
-                disabled={!detailsDirty}
+                disabled={!detailsDirty || uploading}
                 className="flex-1 py-1.5 bg-[#2D5A27] hover:bg-[#23471e] disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium text-xs rounded-lg transition cursor-pointer"
               >
-                Save changes
+                {uploading ? 'Saving…' : 'Save changes'}
               </button>
               <button
                 type="button"
@@ -258,9 +367,13 @@ export default function LinkItem({
                   setTitle(link.title || '');
                   setUrl(link.url || '');
                   setDescription(link.description || '');
+                  setImageFile(null);
+                  setImagePreview(link.image_url || null);
+                  setImageRemoved(false);
                   setActivePanel('none');
                 }}
-                className="px-3 py-1.5 bg-white border border-slate-300 text-slate-600 font-medium text-xs rounded-lg hover:bg-slate-50 transition cursor-pointer"
+                disabled={uploading}
+                className="px-3 py-1.5 bg-white border border-slate-300 text-slate-600 font-medium text-xs rounded-lg hover:bg-slate-50 transition cursor-pointer disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -349,6 +462,9 @@ export default function LinkItem({
 
             <div>
               <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-2">Icon</div>
+              <div className="text-[11px] text-slate-400 mb-1.5 -mt-1">
+                Used only when this link has no image.
+              </div>
               <div className="flex flex-wrap items-center gap-1.5">
                 {QUICK_ICONS.map((em) => {
                   const active = icon === em;
