@@ -41,7 +41,22 @@ export default function Dashboard({ session, profile }) {
 
   return (
     <div>
-      {profile?.username && <ShareProfileButton username={profile.username} />}
+      {profile?.username && (
+        <div className="flex items-stretch gap-2">
+          <div className="flex-1">
+            <ShareProfileButton username={profile.username} />
+          </div>
+          <a
+            href={`/${profile.username}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 flex items-center justify-center gap-1.5 whitespace-nowrap py-2.5 bg-white border border-[#2D5A27] hover:bg-[#2D5A27]/5 text-[#2D5A27] font-medium text-sm rounded-xl transition cursor-pointer shadow-sm mb-4"
+            title="Opens your public page in a new tab, exactly as visitors see it"
+          >
+            Preview my page
+          </a>
+        </div>
+      )}
       <AddLinkForm userId={userId} onLinkAdded={refetchLinks} />
       <LinkList links={links} onDeleteLink={handleDeleteLink} onUpdateLink={handleUpdateLink} />
     </div>

@@ -19,7 +19,7 @@ export default function ShareProfileButton({ username }) {
       onClick={handleShare}
       className="w-full py-2.5 bg-white border border-[#2D5A27] hover:bg-[#2D5A27]/5 text-[#2D5A27] font-medium text-sm rounded-xl transition cursor-pointer shadow-sm mb-4"
     >
-      {copied ? '✓ Copied to clipboard!' : '🔗 Share Profile'}
+      {copied ? '✓ Copied to clipboard!' : 'Share Profile'}
     </button>
   );
 }
