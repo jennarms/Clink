@@ -1,1 +1,5 @@
 @import "tailwindcss";
+
+/* Enables `dark:` classes to respond to a `.dark` class on <html>,
+   instead of only following the OS-level prefers-color-scheme. */
+@custom-variant dark (&:where(.dark, .dark *));

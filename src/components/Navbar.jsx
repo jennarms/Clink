@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../supabaseClient';
+import DarkModeToggle from './DarkModeToggle';
 
 export default function Navbar({ profile, onEditProfile }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -9,15 +10,16 @@ export default function Navbar({ profile, onEditProfile }) {
   };
 
   return (
-    <nav className="border-b border-slate-200 bg-white">
+    <nav className="border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
       <div className="max-w-3xl mx-auto px-6">
         <div className="flex items-center justify-between h-20">
-          <span className="font-bold text-[#2D5A27] text-xl">Linkie 🔗</span>
+          <span className="font-bold text-[#2D5A27] dark:text-[#4CAF50] text-xl">Linkie 🔗</span>
 
           <div className="hidden sm:flex items-center gap-6">
+            <DarkModeToggle />
             <button
               onClick={onEditProfile}
-              className="flex items-center gap-3 text-base text-slate-600 hover:text-[#2D5A27] transition-colors cursor-pointer"
+              className="flex items-center gap-3 text-base text-slate-600 dark:text-slate-300 hover:text-[#2D5A27] dark:hover:text-[#4CAF50] transition-colors cursor-pointer"
             >
               {profile?.avatar_url ? (
                 <img src={profile.avatar_url} alt="" className="w-11 h-11 rounded-full object-cover" />
@@ -30,14 +32,14 @@ export default function Navbar({ profile, onEditProfile }) {
             </button>
             <button
               onClick={handleLogout}
-              className="text-sm bg-slate-100 hover:bg-slate-200 px-4 py-2.5 rounded-lg font-medium text-slate-700 cursor-pointer transition-colors"
+              className="text-sm bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-4 py-2.5 rounded-lg font-medium text-slate-700 dark:text-slate-200 cursor-pointer transition-colors"
             >
               Log Out
             </button>
           </div>
 
           <button
-            className="sm:hidden p-2.5 -mr-2.5 text-slate-600 cursor-pointer"
+            className="sm:hidden p-2.5 -mr-2.5 text-slate-600 dark:text-slate-300 cursor-pointer"
             onClick={() => setMenuOpen((v) => !v)}
             aria-label="Toggle menu"
           >
@@ -54,10 +56,11 @@ export default function Navbar({ profile, onEditProfile }) {
         </div>
 
         {menuOpen && (
-          <div className="sm:hidden pb-5 flex flex-col gap-4 border-t border-slate-100 pt-4">
+          <div className="sm:hidden pb-5 flex flex-col gap-4 border-t border-slate-100 dark:border-slate-700 pt-4">
+            <DarkModeToggle />
             <button
               onClick={() => { setMenuOpen(false); onEditProfile(); }}
-              className="flex items-center gap-3 text-base text-slate-600 cursor-pointer"
+              className="flex items-center gap-3 text-base text-slate-600 dark:text-slate-300 cursor-pointer"
             >
               {profile?.avatar_url ? (
                 <img src={profile.avatar_url} alt="" className="w-11 h-11 rounded-full object-cover" />
@@ -70,7 +73,7 @@ export default function Navbar({ profile, onEditProfile }) {
             </button>
             <button
               onClick={handleLogout}
-              className="text-sm bg-slate-100 px-4 py-2.5 rounded-lg font-medium text-slate-700 text-left cursor-pointer"
+              className="text-sm bg-slate-100 dark:bg-slate-800 px-4 py-2.5 rounded-lg font-medium text-slate-700 dark:text-slate-200 text-left cursor-pointer"
             >
               Log Out
             </button>

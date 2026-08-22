@@ -2,9 +2,6 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import RenderIcon from './RenderIcon';
 
-// Same styling logic as LinkItem.jsx — keep these two in sync, since
-// this is what makes a link on the dashboard look identical once it's
-// live on the public page.
 function cardStyle(accent, style) {
   if (style === 'outline') {
     return { background: '#fff', border: '1.5px solid ' + accent, color: accent };
@@ -16,9 +13,16 @@ function cardStyle(accent, style) {
 }
 
 export default function PublicProfile({ username }) {
-  const [status, setStatus] = useState('loading'); // 'loading' | 'found' | 'not-found'
+  const [status, setStatus] = useState('loading');
   const [profile, setProfile] = useState(null);
   const [links, setLinks] = useState([]);
+
+  // Tracks the OS-level preference only. We don't setState synchronously
+  // for the 'light'/'dark' cases — those are derived directly below,
+  // which avoids the react-hooks/set-state-in-effect lint warning.
+  const [systemPrefersDark, setSystemPrefersDark] = useState(
+    () => window.matchMedia('(prefers-color-scheme: dark)').matches
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -26,7 +30,7 @@ export default function PublicProfile({ username }) {
     async function loadProfile() {
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('id, username, display_name, bio, avatar_url, theme_color')
+        .select('id, username, display_name, bio, avatar_url, theme_color, theme_mode')
         .eq('username', username)
         .single();
 
@@ -62,6 +66,15 @@ export default function PublicProfile({ username }) {
     };
   }, [username]);
 
+  // Subscribes to OS theme changes only — no setState call on mount,
+  // just registering a listener for future changes.
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const update = () => setSystemPrefersDark(mq.matches);
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+
   if (status === 'loading') {
     return (
       <div className="min-h-screen bg-[#F9F8F3] flex items-center justify-center">
@@ -73,8 +86,8 @@ export default function PublicProfile({ username }) {
   if (status === 'not-found') {
     return (
       <div className="min-h-screen bg-[#F9F8F3] flex flex-col items-center justify-center p-4 text-center">
-        <h1 className="text-2xl font-bold text-[#2D5A27] mb-2">Linkie 🔗</h1>
-        <p className="text-slate-600 mb-1">There's no page at /{username}.</p>
+        <h1 className="text-2xl font-bold text-[#2D5A27] mb-2">Linkie</h1>
+        <p className="text-slate-600 mb-1">There is no page at /{username}.</p>
         <a href="/" className="text-sm text-[#2D5A27] hover:underline font-medium">
           Go to Linkie home
         </a>
@@ -82,8 +95,18 @@ export default function PublicProfile({ username }) {
     );
   }
 
+  const mode = profile.theme_mode || 'system';
+  const isDark = mode === 'system' ? systemPrefersDark : mode === 'dark';
+
+  const pageBg = isDark ? '#0F172A' : '#F9F8F3';
+  const nameColor = isDark ? '#F1F5F9' : '#1A1A1A';
+  const handleColor = isDark ? '#94A3B8' : '#64748B';
+  const bioColor = isDark ? '#CBD5E1' : '#475569';
+  const footerColor = isDark ? '#475569' : '#CBD5E1';
+  const displayName = profile.display_name || '@' + profile.username;
+
   return (
-    <div className="min-h-screen bg-[#F9F8F3] flex flex-col items-center px-4 py-14">
+    <div className="min-h-screen flex flex-col items-center px-4 py-14 transition-colors" style={{ background: pageBg }}>
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center text-center mb-8">
           {profile.avatar_url ? (
@@ -95,12 +118,12 @@ export default function PublicProfile({ username }) {
           ) : (
             <div className="w-20 h-20 rounded-full bg-[#2D5A27]/15 mb-4" />
           )}
-          <h1 className="text-xl font-bold text-[#1A1A1A]">
-            {profile.display_name || `@${profile.username}`}
+          <h1 className="text-xl font-bold" style={{ color: nameColor }}>
+            {displayName}
           </h1>
-          <p className="text-sm text-slate-500">@{profile.username}</p>
+          <p className="text-sm" style={{ color: handleColor }}>@{profile.username}</p>
           {profile.bio && (
-            <p className="text-sm text-slate-600 mt-2 max-w-xs">{profile.bio}</p>
+            <p className="text-sm mt-2 max-w-xs" style={{ color: bioColor }}>{profile.bio}</p>
           )}
         </div>
 
@@ -112,6 +135,7 @@ export default function PublicProfile({ username }) {
               const accent = link.accent_color || '#2D5A27';
               const style = link.style || 'solid';
               const boxStyle = cardStyle(accent, style);
+              const iconBg = style === 'solid' ? 'rgba(255,255,255,0.2)' : accent + '1A';
 
               return (
                 <a
@@ -131,7 +155,7 @@ export default function PublicProfile({ username }) {
                   ) : (
                     <span
                       className="w-11 h-11 shrink-0 rounded-xl flex items-center justify-center text-base leading-none"
-                      style={{ background: style === 'solid' ? 'rgba(255,255,255,0.2)' : `${accent}1A` }}
+                      style={{ background: iconBg }}
                     >
                       <RenderIcon iconKey={link.icon} className="w-5 h-5" />
                     </span>
@@ -150,8 +174,8 @@ export default function PublicProfile({ username }) {
           </div>
         )}
 
-        <p className="text-center text-[11px] text-slate-300 mt-10">
-          Made with Linkie 🔗
+        <p className="text-center text-[11px] mt-10" style={{ color: footerColor }}>
+          Made with Linkie
         </p>
       </div>
     </div>
