@@ -25,7 +25,17 @@ function cardStyle(accent, style) {
   return { background: accent, border: '1px solid ' + accent, color: '#fff' };
 }
 
-export default function LinkItem({ link, onDeleteLink, onUpdateLink }) {
+export default function LinkItem({
+  link,
+  onDeleteLink,
+  onUpdateLink,
+  isDragging,
+  isDragOver,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
+}) {
   const [activePanel, setActivePanel] = useState('none'); // 'none' | 'edit' | 'style' | 'delete'
   const [deleting, setDeleting] = useState(false);
 
@@ -103,11 +113,18 @@ export default function LinkItem({ link, onDeleteLink, onUpdateLink }) {
 
   const cardBoxStyle = cardStyle(accent, style);
   const isEditingAnything = activePanel !== 'none';
-  const borderColor = isEditingAnything ? accent : 'transparent';
+  const borderColor = isEditingAnything ? accent : isDragOver ? accent : 'transparent';
+  // Color for the drag handle glyph — needs to read against whichever
+  // background the current style produces (solid/outline/soft).
+  const handleColor = style === 'solid' ? 'rgba(255,255,255,0.55)' : `${accent}80`;
 
   return (
     <div
-      className="rounded-2xl transition-all duration-200 overflow-hidden"
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+      className={`rounded-2xl transition-all duration-200 overflow-hidden ${
+        isDragging ? 'opacity-40' : ''
+      }`}
       style={{
         border: '1.5px solid ' + borderColor,
         boxShadow: isEditingAnything ? `0 2px 12px ${accent}22` : 'none',
@@ -119,28 +136,40 @@ export default function LinkItem({ link, onDeleteLink, onUpdateLink }) {
         }`}
         style={cardBoxStyle}
       >
-        <a href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 truncate mr-2 flex-1">
+        <div className="flex items-center gap-2 truncate mr-2 flex-1 min-w-0">
           <span
-            className="w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-sm leading-none"
-            style={{ background: style === 'solid' ? 'rgba(255,255,255,0.2)' : `${accent}1A` }}
+            draggable
+            onDragStart={onDragStart}
+            onDragEnd={onDragEnd}
+            className="cursor-grab active:cursor-grabbing shrink-0 select-none text-sm leading-none px-0.5 -ml-1"
+            style={{ color: handleColor }}
+            title="Drag to reorder"
           >
-            {link.icon || '🔗'}
+            ⠿
           </span>
-          <div className="min-w-0">
-            <div className="font-semibold text-sm truncate group-hover:underline">
-              {link.title}
+          <a href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 truncate flex-1 min-w-0">
+            <span
+              className="w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-sm leading-none"
+              style={{ background: style === 'solid' ? 'rgba(255,255,255,0.2)' : `${accent}1A` }}
+            >
+              {link.icon || '🔗'}
+            </span>
+            <div className="min-w-0">
+              <div className="font-semibold text-sm truncate group-hover:underline">
+                {link.title}
+              </div>
+              {link.description ? (
+                <div className="text-xs truncate mt-0.5" style={{ opacity: 0.85 }}>
+                  {link.description}
+                </div>
+              ) : (
+                <div className="text-xs truncate mt-0.5" style={{ opacity: 0.75 }}>
+                  {link.url}
+                </div>
+              )}
             </div>
-            {link.description ? (
-              <div className="text-xs truncate mt-0.5" style={{ opacity: 0.85 }}>
-                {link.description}
-              </div>
-            ) : (
-              <div className="text-xs truncate mt-0.5" style={{ opacity: 0.75 }}>
-                {link.url}
-              </div>
-            )}
-          </div>
-        </a>
+          </a>
+        </div>
 
         <div
           className={`flex items-center gap-0.5 shrink-0 transition-opacity duration-150 ${

@@ -20,6 +20,7 @@ export default function Dashboard({ session, profile }) {
         .from('links')
         .select('*')
         .eq('user_id', userId)
+        .order('sort_order', { ascending: true, nullsFirst: false })
         .order('created_at', { ascending: false });
 
       if (isMounted && !error) setLinks(data || []);
@@ -39,6 +40,21 @@ export default function Dashboard({ session, profile }) {
     setLinks((prev) => prev.map((l) => (l.id === id ? { ...l, ...patch } : l)));
   };
 
+  const handleReorderLinks = async (newLinks) => {
+    setLinks(newLinks); // optimistic — reorder feels instant
+
+    const updates = newLinks.map((link, index) =>
+      supabase.from('links').update({ sort_order: index }).eq('id', link.id)
+    );
+    const results = await Promise.all(updates);
+    const failed = results.find((r) => r.error);
+
+    if (failed) {
+      alert(failed.error.message);
+      refetchLinks(); // re-sync with the server if a write failed partway
+    }
+  };
+
   return (
     <div>
       {profile?.username && (
@@ -53,12 +69,17 @@ export default function Dashboard({ session, profile }) {
             className="flex-1 flex items-center justify-center gap-1.5 whitespace-nowrap py-2.5 bg-white border border-[#2D5A27] hover:bg-[#2D5A27]/5 text-[#2D5A27] font-medium text-sm rounded-xl transition cursor-pointer shadow-sm mb-4"
             title="Opens your public page in a new tab, exactly as visitors see it"
           >
-            Preview my page
+            Preview
           </a>
         </div>
       )}
       <AddLinkForm userId={userId} onLinkAdded={refetchLinks} />
-      <LinkList links={links} onDeleteLink={handleDeleteLink} onUpdateLink={handleUpdateLink} />
+      <LinkList
+        links={links}
+        onDeleteLink={handleDeleteLink}
+        onUpdateLink={handleUpdateLink}
+        onReorderLinks={handleReorderLinks}
+      />
     </div>
   );
 }
