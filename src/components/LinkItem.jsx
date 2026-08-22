@@ -187,10 +187,34 @@ export default function LinkItem({
     setActivePanel('none');
   };
 
+  const handleCancelEdit = () => {
+    setTitle(link.title || '');
+    setUrl(link.url || '');
+    setDescription(link.description || '');
+    setImageFile(null);
+    setImagePreview(link.image_url || null);
+    setImageRemoved(false);
+    setActivePanel('none');
+  };
+
+  const handleCancelStyle = () => {
+    setAccent(link.accent_color || '#2D5A27');
+    setStyle(link.style || 'solid');
+    setIcon(link.icon || 'link');
+    setActivePanel('none');
+  };
+
+  // The header row IS the preview — it always renders from the current
+  // draft state (title/description/image/accent/style/icon), which
+  // starts out equal to the saved link and only diverges while a panel
+  // is open and being edited. Cancel resets state back to the saved
+  // values, so the header snaps back too.
   const cardBoxStyle = cardStyle(accent, style);
   const isEditingAnything = activePanel !== 'none';
   const borderColor = isEditingAnything ? accent : isDragOver ? accent : 'transparent';
   const handleColor = style === 'solid' ? 'rgba(255,255,255,0.55)' : `${accent}80`;
+  const displaySubtitle = description || url;
+  const displayImage = imagePreview;
 
   return (
     <div
@@ -221,36 +245,61 @@ export default function LinkItem({
           >
             ⠿
           </span>
-          <a href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 truncate flex-1 min-w-0">
-            {link.image_url ? (
-              <img
-                src={link.image_url}
-                alt=""
-                className="w-11 h-11 shrink-0 rounded-xl object-cover"
-              />
-            ) : (
+          {/* While editing, this row is a live preview, not a working
+              link — so it's not a clickable <a> in that state. */}
+          {isEditingAnything ? (
+            <div className="flex items-center gap-3 truncate flex-1 min-w-0">
               <span
-                className="w-11 h-11 shrink-0 rounded-xl flex items-center justify-center text-base leading-none"
+                className="w-11 h-11 shrink-0 rounded-xl flex items-center justify-center text-base leading-none overflow-hidden"
                 style={{ background: style === 'solid' ? 'rgba(255,255,255,0.2)' : `${accent}1A` }}
               >
-                <RenderIcon iconKey={link.icon} className="w-5 h-5" />
+                {displayImage ? (
+                  <img src={displayImage} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <RenderIcon iconKey={icon} className="w-5 h-5" />
+                )}
               </span>
-            )}
-            <div className="min-w-0">
-              <div className="font-semibold text-sm truncate group-hover:underline">
-                {link.title}
-              </div>
-              {link.description ? (
+              <div className="min-w-0">
+                <div className="font-semibold text-sm truncate">
+                  {title || 'Untitled link'}
+                </div>
                 <div className="text-xs truncate mt-0.5" style={{ opacity: 0.85 }}>
-                  {link.description}
+                  {displaySubtitle || 'yourlink.com'}
                 </div>
-              ) : (
-                <div className="text-xs truncate mt-0.5" style={{ opacity: 0.75 }}>
-                  {link.url}
-                </div>
-              )}
+              </div>
             </div>
-          </a>
+          ) : (
+            <a href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 truncate flex-1 min-w-0">
+              {link.image_url ? (
+                <img
+                  src={link.image_url}
+                  alt=""
+                  className="w-11 h-11 shrink-0 rounded-xl object-cover"
+                />
+              ) : (
+                <span
+                  className="w-11 h-11 shrink-0 rounded-xl flex items-center justify-center text-base leading-none"
+                  style={{ background: style === 'solid' ? 'rgba(255,255,255,0.2)' : `${accent}1A` }}
+                >
+                  <RenderIcon iconKey={link.icon} className="w-5 h-5" />
+                </span>
+              )}
+              <div className="min-w-0">
+                <div className="font-semibold text-sm truncate group-hover:underline">
+                  {link.title}
+                </div>
+                {link.description ? (
+                  <div className="text-xs truncate mt-0.5" style={{ opacity: 0.85 }}>
+                    {link.description}
+                  </div>
+                ) : (
+                  <div className="text-xs truncate mt-0.5" style={{ opacity: 0.75 }}>
+                    {link.url}
+                  </div>
+                )}
+              </div>
+            </a>
+          )}
         </div>
 
         <div
@@ -368,15 +417,7 @@ export default function LinkItem({
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setTitle(link.title || '');
-                  setUrl(link.url || '');
-                  setDescription(link.description || '');
-                  setImageFile(null);
-                  setImagePreview(link.image_url || null);
-                  setImageRemoved(false);
-                  setActivePanel('none');
-                }}
+                onClick={handleCancelEdit}
                 disabled={uploading}
                 className="px-3 py-1.5 bg-white border border-slate-300 text-slate-600 font-medium text-xs rounded-lg hover:bg-slate-50 transition cursor-pointer disabled:opacity-50"
               >
@@ -501,7 +542,7 @@ export default function LinkItem({
               </button>
               <button
                 type="button"
-                onClick={() => setActivePanel('none')}
+                onClick={handleCancelStyle}
                 className="px-3 py-1.5 bg-white border border-slate-300 text-slate-600 font-medium text-xs rounded-lg hover:bg-slate-50 transition cursor-pointer"
               >
                 Cancel
