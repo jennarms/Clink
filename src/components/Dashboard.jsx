@@ -66,7 +66,7 @@ export default function Dashboard({ session, profile }) {
             href={`/${profile.username}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 flex items-center justify-center gap-1.5 whitespace-nowrap py-2.5 bg-white border border-[#2D5A27] hover:bg-[#2D5A27]/5 text-[#2D5A27] font-medium text-sm rounded-xl transition cursor-pointer shadow-sm mb-4"
+            className="flex-1 flex items-center justify-center gap-1.5 whitespace-nowrap py-2.5 bg-white dark:bg-slate-800 border border-[#2D5A27] dark:border-[#4CAF50] hover:bg-[#2D5A27]/5 dark:hover:bg-[#4CAF50]/10 text-[#2D5A27] dark:text-[#4CAF50] font-medium text-sm rounded-xl transition cursor-pointer shadow-sm mb-4"
             title="Opens your public page in a new tab, exactly as visitors see it"
           >
             Preview

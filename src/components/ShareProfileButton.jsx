@@ -17,7 +17,7 @@ export default function ShareProfileButton({ username }) {
   return (
     <button
       onClick={handleShare}
-      className="w-full py-2.5 bg-white border border-[#2D5A27] hover:bg-[#2D5A27]/5 text-[#2D5A27] font-medium text-sm rounded-xl transition cursor-pointer shadow-sm mb-4"
+      className="w-full py-2.5 bg-white dark:bg-slate-800 border border-[#2D5A27] dark:border-[#4CAF50] hover:bg-[#2D5A27]/5 dark:hover:bg-[#4CAF50]/10 text-[#2D5A27] dark:text-[#4CAF50] font-medium text-sm rounded-xl transition cursor-pointer shadow-sm mb-4"
     >
       {copied ? '✓ Copied to clipboard!' : 'Share Profile'}
     </button>

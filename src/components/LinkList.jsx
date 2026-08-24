@@ -7,7 +7,7 @@ export default function LinkList({ links, userId, onDeleteLink, onUpdateLink, on
 
   if (links.length === 0) {
     return (
-      <p className="text-xs text-slate-400 text-center py-6">
+      <p className="text-xs text-slate-400 dark:text-slate-500 text-center py-6">
         No links yet — add your first one above.
       </p>
     );

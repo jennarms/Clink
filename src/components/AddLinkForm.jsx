@@ -1,46 +1,8 @@
 import { useState } from 'react';
+import { useTheme } from '../context/useTheme';
+import { PALETTE, QUICK_ICONS, STYLES, cardStyle } from '../lib/linkStyles';
 import { supabase } from '../supabaseClient';
 import RenderIcon from './RenderIcon';
-
-const PALETTE = [
-  { name: 'Forest', value: '#2D5A27' },
-  { name: 'Ocean',  value: '#1E5F74' },
-  { name: 'Sunset', value: '#C1502E' },
-  { name: 'Berry',  value: '#7B2D5E' },
-  { name: 'Slate',  value: '#3D4451' },
-  { name: 'Gold',   value: '#A67C27' },
-  { name: 'Rose',   value: '#B33951' },
-  { name: 'Ink',    value: '#1A1A1A' },
-];
-
-const STYLES = ['solid', 'outline', 'soft'];
-
-const QUICK_ICONS = [
-  { id: 'facebook', label: 'Facebook' },
-  { id: 'instagram', label: 'Instagram' },
-  { id: 'x', label: 'X / Twitter' },
-  { id: 'youtube', label: 'YouTube' },
-  { id: 'tiktok', label: 'TikTok' },
-  { id: 'linkedin', label: 'LinkedIn' },
-  { id: 'pinterest', label: 'Pinterest' },
-  { id: 'whatsapp', label: 'WhatsApp' },
-  { id: 'discord', label: 'Discord' },
-  { id: 'link', label: 'Link' },
-  { id: 'globe', label: 'Website' },
-  { id: 'shop', label: 'Shop' },
-  { id: 'sparkles', label: 'Featured' },
-  { id: 'notes', label: 'Notes' },
-];
-
-function cardStyle(accent, style) {
-  if (style === 'outline') {
-    return { background: '#fff', border: '1.5px solid ' + accent, color: accent };
-  }
-  if (style === 'soft') {
-    return { background: accent + '14', border: '1px solid ' + accent + '33', color: accent };
-  }
-  return { background: accent, border: '1px solid ' + accent, color: '#fff' };
-}
 
 export default function AddLinkForm({ userId, onLinkAdded }) {
   const [open, setOpen] = useState(false);
@@ -55,6 +17,12 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
   const [accent, setAccent] = useState('#2D5A27');
   const [style, setStyle] = useState('solid');
   const [icon, setIcon] = useState('link');
+
+  // Now pulled from ThemeContext instead of reading document.documentElement
+  // directly, so this re-renders correctly if the user toggles the theme
+  // while the form is open.
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   const resetForm = () => {
     setTitle('');
@@ -147,7 +115,7 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="w-full flex items-center justify-center gap-2 p-3.5 mb-2 rounded-2xl border-2 border-dashed border-slate-300 text-slate-500 text-sm font-medium hover:border-[#2D5A27] hover:text-[#2D5A27] hover:bg-[#2D5A27]/[0.03] transition-colors cursor-pointer"
+        className="w-full flex items-center justify-center gap-2 p-3.5 mb-2 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 text-sm font-medium hover:border-[#2D5A27] dark:hover:border-[#4CAF50] hover:text-[#2D5A27] dark:hover:text-[#4CAF50] hover:bg-[#2D5A27]/[0.03] dark:hover:bg-[#4CAF50]/[0.06] transition-colors cursor-pointer"
       >
         <span className="w-5 h-5 rounded-full border-[1.5px] border-current flex items-center justify-center text-xs leading-none">
           +
@@ -157,21 +125,21 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
     );
   }
 
-  const previewBoxStyle = cardStyle(accent, style);
+  const previewBoxStyle = cardStyle(accent, style, isDark);
 
   return (
     <form
       onSubmit={handleAddLink}
-      className="p-4 mb-2 rounded-2xl border border-[#2D5A27]/30 bg-[#F9F8F3] shadow-sm space-y-3"
+      className="p-4 mb-2 rounded-2xl border border-[#2D5A27]/30 dark:border-[#4CAF50]/30 bg-[#F9F8F3] dark:bg-slate-800/60 shadow-sm space-y-3"
     >
       <div className="flex items-center justify-between mb-0.5">
-        <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
           New link
         </span>
         <button
           type="button"
           onClick={resetForm}
-          className="text-slate-400 hover:text-slate-600 text-sm leading-none cursor-pointer"
+          className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm leading-none cursor-pointer"
           title="Cancel"
         >
           ✕
@@ -185,7 +153,7 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
         onChange={(e) => setTitle(e.target.value)}
         autoFocus
         required
-        className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-[#1A1A1A] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 focus:border-[#2D5A27]"
+        className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-[#1A1A1A] dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 dark:focus:ring-[#4CAF50]/30 focus:border-[#2D5A27] dark:focus:border-[#4CAF50]"
       />
       <input
         type="text"
@@ -193,19 +161,19 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
         value={url}
         onChange={(e) => setUrl(e.target.value)}
         required
-        className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-[#1A1A1A] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 focus:border-[#2D5A27]"
+        className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-[#1A1A1A] dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 dark:focus:ring-[#4CAF50]/30 focus:border-[#2D5A27] dark:focus:border-[#4CAF50]"
       />
       <textarea
         placeholder="Description (optional)"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         rows={2}
-        className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-[#1A1A1A] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 focus:border-[#2D5A27] resize-none"
+        className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-[#1A1A1A] dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 dark:focus:ring-[#4CAF50]/30 focus:border-[#2D5A27] dark:focus:border-[#4CAF50] resize-none"
       />
 
       {/* Image picker */}
       <div>
-        <label className="flex items-center justify-center gap-2 w-full py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-600 hover:bg-slate-50 cursor-pointer transition">
+        <label className="flex items-center justify-center gap-2 w-full py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition">
           <span className="text-sm">🖼️</span>
           {imageFile ? 'Change image' : 'Add Image as Icon (optional)'}
           <input
@@ -217,7 +185,7 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
         </label>
 
         {imagePreview && (
-          <div className="relative mt-2 rounded-xl overflow-hidden border border-slate-300">
+          <div className="relative mt-2 rounded-xl overflow-hidden border border-slate-300 dark:border-slate-600">
             <img
               src={imagePreview}
               alt="Preview"
@@ -240,7 +208,7 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
         <button
           type="button"
           onClick={() => setShowDesign((prev) => !prev)}
-          className="flex items-center justify-center gap-2 w-full py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-600 hover:bg-slate-50 cursor-pointer transition"
+          className="flex items-center justify-center gap-2 w-full py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition"
         >
           <span className="text-sm">🎨</span>
           {showDesign ? 'Hide design options' : 'Customize Icon and Design (optional)'}
@@ -252,9 +220,9 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
           }`}
         >
           <div className="overflow-hidden">
-            <div className="mt-2 p-3.5 rounded-xl border border-slate-200 bg-white space-y-4">
+            <div className="mt-2 p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 space-y-4">
               <div>
-                <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-2">Color</div>
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">Color</div>
                 <div className="flex flex-wrap items-center gap-2">
                   {PALETTE.map((c) => {
                     const isActive = accent === c.value;
@@ -267,7 +235,9 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
                         className="relative w-7 h-7 rounded-full cursor-pointer transition-transform hover:scale-110 flex items-center justify-center"
                         style={{
                           background: c.value,
-                          boxShadow: isActive ? `0 0 0 2px #fff, 0 0 0 3.5px ${c.value}` : 'none',
+                          boxShadow: isActive
+                            ? `0 0 0 2px ${isDark ? '#1e293b' : '#fff'}, 0 0 0 3.5px ${c.value}`
+                            : 'none',
                         }}
                       >
                         {isActive && (
@@ -277,7 +247,7 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
                     );
                   })}
                   <label
-                    className="relative w-7 h-7 rounded-full cursor-pointer border-[1.5px] border-dashed border-slate-400 flex items-center justify-center text-slate-400 hover:border-slate-500 hover:text-slate-500 transition-colors"
+                    className="relative w-7 h-7 rounded-full cursor-pointer border-[1.5px] border-dashed border-slate-400 dark:border-slate-500 flex items-center justify-center text-slate-400 dark:text-slate-500 hover:border-slate-500 dark:hover:border-slate-400 hover:text-slate-500 dark:hover:text-slate-400 transition-colors"
                     title="Custom color"
                   >
                     <span className="text-xs leading-none">+</span>
@@ -292,11 +262,11 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
               </div>
 
               <div>
-                <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-2">Style</div>
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">Style</div>
                 <div className="flex gap-2">
                   {STYLES.map((st) => {
                     const active = style === st;
-                    const stBoxStyle = cardStyle(accent, st);
+                    const stBoxStyle = cardStyle(accent, st, isDark);
                     return (
                       <button
                         key={st}
@@ -304,8 +274,8 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
                         onClick={() => setStyle(st)}
                         className={`flex-1 flex flex-col items-center gap-1.5 py-2 rounded-lg cursor-pointer transition-all border ${
                           active
-                            ? 'border-[#2D5A27] bg-white shadow-sm'
-                            : 'border-transparent hover:bg-slate-50'
+                            ? 'border-[#2D5A27] dark:border-[#4CAF50] bg-white dark:bg-slate-800 shadow-sm'
+                            : 'border-transparent hover:bg-slate-50 dark:hover:bg-slate-800/60'
                         }`}
                       >
                         <span
@@ -314,7 +284,7 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
                         >
                           Aa
                         </span>
-                        <span className={`text-[11px] font-medium capitalize ${active ? 'text-[#2D5A27]' : 'text-slate-500'}`}>
+                        <span className={`text-[11px] font-medium capitalize ${active ? 'text-[#2D5A27] dark:text-[#4CAF50]' : 'text-slate-500 dark:text-slate-400'}`}>
                           {st}
                         </span>
                       </button>
@@ -324,8 +294,8 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
               </div>
 
               <div>
-                <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-2">Icon</div>
-                <div className="text-[11px] text-slate-400 mb-1.5 -mt-1">
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">Icon</div>
+                <div className="text-[11px] text-slate-400 dark:text-slate-500 mb-1.5 -mt-1">
                   Used only if you don't add an image above.
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5">
@@ -338,7 +308,9 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
                         title={item.label}
                         onClick={() => setIcon(item.id)}
                         className={`w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition-colors border ${
-                          active ? 'border-[#2D5A27] bg-white shadow-sm text-[#2D5A27]' : 'border-transparent text-slate-600 hover:bg-slate-50'
+                          active
+                            ? 'border-[#2D5A27] dark:border-[#4CAF50] bg-white dark:bg-slate-800 shadow-sm text-[#2D5A27] dark:text-[#4CAF50]'
+                            : 'border-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60'
                         }`}
                       >
                         <RenderIcon iconKey={item.id} className="w-4 h-4" />
@@ -355,7 +327,7 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
       {/* Live preview */}
       {title && (
         <div>
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400 mb-1.5">
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-1.5">
             Preview
           </div>
           <div className="flex items-center gap-3 p-3 rounded-xl" style={previewBoxStyle}>
@@ -383,7 +355,7 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
         <button
           type="submit"
           disabled={uploading}
-          className="flex-1 py-2 bg-[#2D5A27] hover:bg-[#23471e] disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium text-sm rounded-lg transition cursor-pointer"
+          className="flex-1 py-2 bg-[#2D5A27] hover:bg-[#23471e] dark:bg-[#4CAF50] dark:hover:bg-[#3d9142] disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium text-sm rounded-lg transition cursor-pointer"
         >
           {uploading ? 'Adding…' : 'Add link'}
         </button>
@@ -391,7 +363,7 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
           type="button"
           onClick={resetForm}
           disabled={uploading}
-          className="px-3 py-2 bg-white border border-slate-300 text-slate-600 font-medium text-sm rounded-lg hover:bg-slate-50 transition cursor-pointer disabled:opacity-50"
+          className="px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-medium text-sm rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer disabled:opacity-50"
         >
           Cancel
         </button>

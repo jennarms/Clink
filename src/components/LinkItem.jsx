@@ -1,46 +1,8 @@
 import { useState } from 'react';
+import { useTheme } from '../context/useTheme';
+import { PALETTE, QUICK_ICONS, STYLES, cardStyle } from '../lib/linkStyles';
 import { supabase } from '../supabaseClient';
 import RenderIcon from './RenderIcon';
-
-const PALETTE = [
-  { name: 'Forest', value: '#2D5A27' },
-  { name: 'Ocean',  value: '#1E5F74' },
-  { name: 'Sunset', value: '#C1502E' },
-  { name: 'Berry',  value: '#7B2D5E' },
-  { name: 'Slate',  value: '#3D4451' },
-  { name: 'Gold',   value: '#A67C27' },
-  { name: 'Rose',   value: '#B33951' },
-  { name: 'Ink',    value: '#1A1A1A' },
-];
-
-const STYLES = ['solid', 'outline', 'soft'];
-
-const QUICK_ICONS = [
-  { id: 'facebook', label: 'Facebook' },
-  { id: 'instagram', label: 'Instagram' },
-  { id: 'x', label: 'X / Twitter' },
-  { id: 'youtube', label: 'YouTube' },
-  { id: 'tiktok', label: 'TikTok' },
-  { id: 'linkedin', label: 'LinkedIn' },
-  { id: 'pinterest', label: 'Pinterest' },
-  { id: 'whatsapp', label: 'WhatsApp' },
-  { id: 'discord', label: 'Discord' },
-  { id: 'link', label: 'Link' },
-  { id: 'globe', label: 'Website' },
-  { id: 'shop', label: 'Shop' },
-  { id: 'sparkles', label: 'Featured' },
-  { id: 'notes', label: 'Notes' },
-];
-
-function cardStyle(accent, style) {
-  if (style === 'outline') {
-    return { background: '#fff', border: '1.5px solid ' + accent, color: accent };
-  }
-  if (style === 'soft') {
-    return { background: accent + '14', border: '1px solid ' + accent + '33', color: accent };
-  }
-  return { background: accent, border: '1px solid ' + accent, color: '#fff' };
-}
 
 export default function LinkItem({
   link,
@@ -54,6 +16,9 @@ export default function LinkItem({
   onDrop,
   onDragEnd,
 }) {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   const [activePanel, setActivePanel] = useState('none'); // 'none' | 'edit' | 'style' | 'delete'
   const [deleting, setDeleting] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -204,12 +169,7 @@ export default function LinkItem({
     setActivePanel('none');
   };
 
-  // The header row IS the preview — it always renders from the current
-  // draft state (title/description/image/accent/style/icon), which
-  // starts out equal to the saved link and only diverges while a panel
-  // is open and being edited. Cancel resets state back to the saved
-  // values, so the header snaps back too.
-  const cardBoxStyle = cardStyle(accent, style);
+  const cardBoxStyle = cardStyle(accent, style, isDark);
   const isEditingAnything = activePanel !== 'none';
   const borderColor = isEditingAnything ? accent : isDragOver ? accent : 'transparent';
   const handleColor = style === 'solid' ? 'rgba(255,255,255,0.55)' : `${accent}80`;
@@ -245,8 +205,6 @@ export default function LinkItem({
           >
             ⠿
           </span>
-          {/* While editing, this row is a live preview, not a working
-              link — so it's not a clickable <a> in that state. */}
           {isEditingAnything ? (
             <div className="flex items-center gap-3 truncate flex-1 min-w-0">
               <span
@@ -341,43 +299,43 @@ export default function LinkItem({
         }`}
       >
         <div className="overflow-hidden">
-          <form onSubmit={handleSaveDetails} className="p-4 bg-[#F9F8F3] border-t border-slate-200 space-y-3">
+          <form onSubmit={handleSaveDetails} className="p-4 bg-[#F9F8F3] dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-700 space-y-3">
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Title</div>
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1.5">Title</div>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 focus:border-[#2D5A27]"
+                className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-[#1A1A1A] dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 dark:focus:ring-[#4CAF50]/30 focus:border-[#2D5A27] dark:focus:border-[#4CAF50]"
               />
             </div>
 
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-1.5">URL</div>
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1.5">URL</div>
               <input
                 type="text"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 required
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 focus:border-[#2D5A27]"
+                className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-[#1A1A1A] dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 dark:focus:ring-[#4CAF50]/30 focus:border-[#2D5A27] dark:focus:border-[#4CAF50]"
               />
             </div>
 
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Description</div>
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1.5">Description</div>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={2}
                 placeholder="Optional short note about this link"
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm text-[#1A1A1A] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 focus:border-[#2D5A27] resize-none"
+                className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-[#1A1A1A] dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 dark:focus:ring-[#4CAF50]/30 focus:border-[#2D5A27] dark:focus:border-[#4CAF50] resize-none"
               />
             </div>
 
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Image</div>
-              <label className="flex items-center justify-center gap-2 w-full py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-600 hover:bg-slate-50 cursor-pointer transition">
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1.5">Image</div>
+              <label className="flex items-center justify-center gap-2 w-full py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition">
                 <span className="text-sm">🖼️</span>
                 {imagePreview ? 'Change image' : 'Add Image as Icon (optional)'}
                 <input
@@ -389,7 +347,7 @@ export default function LinkItem({
               </label>
 
               {imagePreview && (
-                <div className="relative mt-2 rounded-xl overflow-hidden border border-slate-300">
+                <div className="relative mt-2 rounded-xl overflow-hidden border border-slate-300 dark:border-slate-600">
                   <img
                     src={imagePreview}
                     alt="Preview"
@@ -411,7 +369,7 @@ export default function LinkItem({
               <button
                 type="submit"
                 disabled={!detailsDirty || uploading}
-                className="flex-1 py-1.5 bg-[#2D5A27] hover:bg-[#23471e] disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium text-xs rounded-lg transition cursor-pointer"
+                className="flex-1 py-1.5 bg-[#2D5A27] hover:bg-[#23471e] dark:bg-[#4CAF50] dark:hover:bg-[#3d9142] disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium text-xs rounded-lg transition cursor-pointer"
               >
                 {uploading ? 'Saving…' : 'Save changes'}
               </button>
@@ -419,7 +377,7 @@ export default function LinkItem({
                 type="button"
                 onClick={handleCancelEdit}
                 disabled={uploading}
-                className="px-3 py-1.5 bg-white border border-slate-300 text-slate-600 font-medium text-xs rounded-lg hover:bg-slate-50 transition cursor-pointer disabled:opacity-50"
+                className="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-medium text-xs rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition cursor-pointer disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -435,9 +393,9 @@ export default function LinkItem({
         }`}
       >
         <div className="overflow-hidden">
-          <div className="p-4 bg-[#F9F8F3] border-t border-slate-200 space-y-4">
+          <div className="p-4 bg-[#F9F8F3] dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-700 space-y-4">
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-2">Color</div>
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">Color</div>
               <div className="flex flex-wrap items-center gap-2">
                 {PALETTE.map((c) => {
                   const isActive = accent === c.value;
@@ -450,7 +408,9 @@ export default function LinkItem({
                       className="relative w-7 h-7 rounded-full cursor-pointer transition-transform hover:scale-110 flex items-center justify-center"
                       style={{
                         background: c.value,
-                        boxShadow: isActive ? `0 0 0 2px #fff, 0 0 0 3.5px ${c.value}` : 'none',
+                        boxShadow: isActive
+                          ? `0 0 0 2px ${isDark ? '#1e293b' : '#fff'}, 0 0 0 3.5px ${c.value}`
+                          : 'none',
                       }}
                     >
                       {isActive && (
@@ -460,7 +420,7 @@ export default function LinkItem({
                   );
                 })}
                 <label
-                  className="relative w-7 h-7 rounded-full cursor-pointer border-[1.5px] border-dashed border-slate-400 flex items-center justify-center text-slate-400 hover:border-slate-500 hover:text-slate-500 transition-colors"
+                  className="relative w-7 h-7 rounded-full cursor-pointer border-[1.5px] border-dashed border-slate-400 dark:border-slate-500 flex items-center justify-center text-slate-400 dark:text-slate-500 hover:border-slate-500 dark:hover:border-slate-400 hover:text-slate-500 dark:hover:text-slate-400 transition-colors"
                   title="Custom color"
                 >
                   <span className="text-xs leading-none">+</span>
@@ -475,11 +435,11 @@ export default function LinkItem({
             </div>
 
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-2">Style</div>
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">Style</div>
               <div className="flex gap-2">
                 {STYLES.map((st) => {
                   const active = style === st;
-                  const previewBoxStyle = cardStyle(accent, st);
+                  const previewBoxStyle = cardStyle(accent, st, isDark);
                   return (
                     <button
                       key={st}
@@ -487,8 +447,8 @@ export default function LinkItem({
                       onClick={() => setStyle(st)}
                       className={`flex-1 flex flex-col items-center gap-1.5 py-2 rounded-lg cursor-pointer transition-all border ${
                         active
-                          ? 'border-[#2D5A27] bg-white shadow-sm'
-                          : 'border-transparent hover:bg-white/60'
+                          ? 'border-[#2D5A27] dark:border-[#4CAF50] bg-white dark:bg-slate-700 shadow-sm'
+                          : 'border-transparent hover:bg-white/60 dark:hover:bg-slate-700/60'
                       }`}
                     >
                       <span
@@ -497,7 +457,7 @@ export default function LinkItem({
                       >
                         Aa
                       </span>
-                      <span className={`text-[11px] font-medium capitalize ${active ? 'text-[#2D5A27]' : 'text-slate-500'}`}>
+                      <span className={`text-[11px] font-medium capitalize ${active ? 'text-[#2D5A27] dark:text-[#4CAF50]' : 'text-slate-500 dark:text-slate-400'}`}>
                         {st}
                       </span>
                     </button>
@@ -507,8 +467,8 @@ export default function LinkItem({
             </div>
 
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-2">Icon</div>
-              <div className="text-[11px] text-slate-400 mb-1.5 -mt-1">
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">Icon</div>
+              <div className="text-[11px] text-slate-400 dark:text-slate-500 mb-1.5 -mt-1">
                 Used only when this link has no image.
               </div>
               <div className="flex flex-wrap items-center gap-1.5">
@@ -521,7 +481,9 @@ export default function LinkItem({
                       title={item.label}
                       onClick={() => setIcon(item.id)}
                       className={`w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition-colors border ${
-                        active ? 'border-[#2D5A27] bg-white shadow-sm text-[#2D5A27]' : 'border-transparent text-slate-600 hover:bg-white/60'
+                        active
+                          ? 'border-[#2D5A27] dark:border-[#4CAF50] bg-white dark:bg-slate-700 shadow-sm text-[#2D5A27] dark:text-[#4CAF50]'
+                          : 'border-transparent text-slate-600 dark:text-slate-400 hover:bg-white/60 dark:hover:bg-slate-700/60'
                       }`}
                     >
                       <RenderIcon iconKey={item.id} className="w-4 h-4" />
@@ -536,14 +498,14 @@ export default function LinkItem({
                 type="button"
                 onClick={handleSaveStyle}
                 disabled={!styleDirty}
-                className="flex-1 py-1.5 bg-[#2D5A27] hover:bg-[#23471e] disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium text-xs rounded-lg transition cursor-pointer"
+                className="flex-1 py-1.5 bg-[#2D5A27] hover:bg-[#23471e] dark:bg-[#4CAF50] dark:hover:bg-[#3d9142] disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium text-xs rounded-lg transition cursor-pointer"
               >
                 Save style
               </button>
               <button
                 type="button"
                 onClick={handleCancelStyle}
-                className="px-3 py-1.5 bg-white border border-slate-300 text-slate-600 font-medium text-xs rounded-lg hover:bg-slate-50 transition cursor-pointer"
+                className="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-medium text-xs rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition cursor-pointer"
               >
                 Cancel
               </button>
@@ -559,13 +521,13 @@ export default function LinkItem({
         }`}
       >
         <div className="overflow-hidden">
-          <div className="p-4 bg-[#F9F8F3] border-t border-slate-200 space-y-3">
+          <div className="p-4 bg-[#F9F8F3] dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-700 space-y-3">
             <div className="flex items-center gap-2.5">
-              <span className="w-7 h-7 shrink-0 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-xs">
+              <span className="w-7 h-7 shrink-0 rounded-full bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center text-xs">
                 ✕
               </span>
-              <p className="text-sm text-slate-600">
-                Delete <span className="font-semibold text-[#1A1A1A]">{link.title}</span>?
+              <p className="text-sm text-slate-600 dark:text-slate-300">
+                Delete <span className="font-semibold text-[#1A1A1A] dark:text-slate-100">{link.title}</span>?
                 This can't be undone.
               </p>
             </div>
@@ -574,7 +536,7 @@ export default function LinkItem({
                 type="button"
                 onClick={() => setActivePanel('none')}
                 disabled={deleting}
-                className="flex-1 py-1.5 bg-white border border-slate-300 text-slate-600 font-medium text-xs rounded-lg hover:bg-slate-50 disabled:opacity-50 transition cursor-pointer"
+                className="flex-1 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-medium text-xs rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 transition cursor-pointer"
               >
                 Cancel
               </button>
@@ -582,7 +544,7 @@ export default function LinkItem({
                 type="button"
                 onClick={handleConfirmDelete}
                 disabled={deleting}
-                className="flex-1 py-1.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium text-xs rounded-lg transition cursor-pointer"
+                className="flex-1 py-1.5 bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium text-xs rounded-lg transition cursor-pointer"
               >
                 {deleting ? 'Deleting...' : 'Delete link'}
               </button>
