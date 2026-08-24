@@ -103,7 +103,7 @@ export default function App() {
   if (session) {
     return (
       <div className="min-h-screen bg-[#F9F8F3] dark:bg-slate-950 text-[#1A1A1A] dark:text-slate-100">
-        <Navbar profile={profile} onEditProfile={goToEditProfile} />
+        <Navbar profile={profile} onEditProfile={goToEditProfile} onLogoClick={goToDashboard} />
          <div className="flex flex-col items-center p-4 pt-8">
              <div className="w-full max-w-md bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
             {isEditingProfile ? (
