@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTheme } from '../context/useTheme';
 import { PALETTE, QUICK_ICONS, STYLES, cardStyle } from '../lib/linkStyles';
 import { supabase } from '../supabaseClient';
+import ConfirmDialog from './ConfirmDialog';
 import RenderIcon from './RenderIcon';
 
 export default function LinkItem({
@@ -19,7 +20,8 @@ export default function LinkItem({
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
-  const [activePanel, setActivePanel] = useState('none'); // 'none' | 'edit' | 'style' | 'delete'
+  const [activePanel, setActivePanel] = useState('none'); // 'none' | 'edit' | 'style'
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -67,6 +69,7 @@ export default function LinkItem({
     setDeleting(true);
     await onDeleteLink(link.id);
     setDeleting(false);
+    setShowDeleteConfirm(false);
   };
 
   const styleDirty =
@@ -283,7 +286,7 @@ export default function LinkItem({
           </button>
           <button
             type="button"
-            onClick={() => togglePanel('delete')}
+            onClick={() => setShowDeleteConfirm(true)}
             className="p-1.5 rounded-lg hover:bg-black/10 transition-colors cursor-pointer text-sm"
             title="Delete link"
           >
@@ -514,44 +517,16 @@ export default function LinkItem({
         </div>
       </div>
 
-      {/* Delete confirmation panel */}
-      <div
-        className={`grid transition-[grid-template-rows] duration-300 ease-out ${
-          activePanel === 'delete' ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-        }`}
-      >
-        <div className="overflow-hidden">
-          <div className="p-4 bg-[#F9F8F3] dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-700 space-y-3">
-            <div className="flex items-center gap-2.5">
-              <span className="w-7 h-7 shrink-0 rounded-full bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center text-xs">
-                ✕
-              </span>
-              <p className="text-sm text-slate-600 dark:text-slate-300">
-                Delete <span className="font-semibold text-[#1A1A1A] dark:text-slate-100">{link.title}</span>?
-                This can't be undone.
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setActivePanel('none')}
-                disabled={deleting}
-                className="flex-1 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-medium text-xs rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 transition cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmDelete}
-                disabled={deleting}
-                className="flex-1 py-1.5 bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium text-xs rounded-lg transition cursor-pointer"
-              >
-                {deleting ? 'Deleting...' : 'Delete link'}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        title={`Delete "${link.title}"?`}
+        message="This can't be undone."
+        confirmLabel={deleting ? 'Deleting…' : 'Delete link'}
+        cancelLabel="Cancel"
+        danger
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
     </div>
   );
 }
