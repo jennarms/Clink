@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { isValidSpotifyUrl } from '../lib/spotify';
 import { supabase } from '../supabaseClient';
 import ConfirmDialog from './ConfirmDialog';
 import ImageCropModal from './ImageCropModal';
@@ -29,6 +30,7 @@ export default function EditProfile({ session, profile, onProfileUpdated }) {
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || '');
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(profile?.avatar_url || '');
+  const [spotifyUrl, setSpotifyUrl] = useState(profile?.spotify_url || '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -81,6 +83,10 @@ export default function EditProfile({ session, profile, onProfileUpdated }) {
       setError('Username cannot be empty.');
       return;
     }
+    if (!isValidSpotifyUrl(spotifyUrl.trim())) {
+      setError('That doesn\'t look like a valid Spotify link.');
+      return;
+    }
 
     setSaving(true);
     try {
@@ -105,6 +111,7 @@ export default function EditProfile({ session, profile, onProfileUpdated }) {
         bio: bio.trim(),
         avatar_url: finalAvatarUrl || null,
         username: username.trim(),
+        spotify_url: spotifyUrl.trim() || null,
       };
 
       if (usernameChanged) {
@@ -220,6 +227,33 @@ export default function EditProfile({ session, profile, onProfileUpdated }) {
             className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-sm text-[#1A1A1A] dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 resize-none focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 dark:focus:ring-[#4CAF50]/30 focus:border-[#2D5A27] dark:focus:border-[#4CAF50]"
           />
           <p className="text-[11px] text-slate-400 dark:text-slate-500 text-right mt-1">{bio.length}/160</p>
+        </div>
+
+        <div>
+          <label className="text-xs font-medium text-slate-600 dark:text-slate-300 block mb-1">
+            Spotify link
+          </label>
+          <input
+            type="text"
+            value={spotifyUrl}
+            onChange={(e) => setSpotifyUrl(e.target.value)}
+            placeholder="https://open.spotify.com/track/..."
+            className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-sm text-[#1A1A1A] dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 dark:focus:ring-[#4CAF50]/30 focus:border-[#2D5A27] dark:focus:border-[#4CAF50]"
+          />
+          <div className="flex items-center justify-between mt-1">
+            <p className="text-xs text-slate-400 dark:text-slate-500">
+              Paste a track, album, playlist, or episode link — a player shows on your page.
+            </p>
+            {spotifyUrl && (
+              <button
+                type="button"
+                onClick={() => setSpotifyUrl('')}
+                className="text-xs text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 cursor-pointer shrink-0 ml-2"
+              >
+                Remove
+              </button>
+            )}
+          </div>
         </div>
 
         {error && <p className="text-xs text-red-500 dark:text-red-400">{error}</p>}

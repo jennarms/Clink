@@ -5,6 +5,7 @@ import BackgroundColorPicker from './BackgroundColorPicker';
 import LinkList from './LinkList';
 import PagePreviewCard from './PagePreviewCard';
 import ShareProfileButton from './ShareProfileButton';
+import SpotifyEmbed from './SpotifyEmbed';
 
 const LONG_PRESS_MS = 450;
 
@@ -166,6 +167,10 @@ export default function Dashboard({ session, profile }) {
                       </p>
                     )}
                   </div>
+
+                    {profile.spotify_url && (
+                    <SpotifyEmbed url={profile.spotify_url} className="mb-4" />
+                  )}
 
                   <div className="flex items-stretch gap-2">
                     <div className="flex-1">

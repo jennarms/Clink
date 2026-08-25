@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { cardStyle, luminance } from '../lib/linkStyles';
 import { supabase } from '../supabaseClient';
 import RenderIcon from './RenderIcon';
+import SpotifyEmbed from './SpotifyEmbed';
 
 const DEFAULT_BG = '#F9F8F3';
 
@@ -16,7 +17,7 @@ export default function PublicProfile({ username }) {
     async function loadProfile() {
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('id, username, display_name, bio, avatar_url, theme_color, background_type, background_value')
+        .select('id, username, display_name, bio, avatar_url, theme_color, background_type, background_value, spotify_url')
         .eq('username', username)
         .single();
 
@@ -85,7 +86,7 @@ export default function PublicProfile({ username }) {
   const footerColor = isDark ? '#475569' : '#CBD5E1';
   const avatarBorder = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)';
   const avatarFallbackBg = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(45,90,39,0.15)';
-  const displayName = profile.display_name || '@' + profile.username;
+  const displayName = profile.display_name || '@' + profile.username; 
 
   const pageStyle = isImageBg
     ? {
@@ -118,6 +119,10 @@ export default function PublicProfile({ username }) {
             <p className="text-sm mt-2 max-w-xs" style={{ color: bioColor }}>{profile.bio}</p>
           )}
         </div>
+
+        {profile.spotify_url && (
+          <SpotifyEmbed url={profile.spotify_url} label={false} className="mb-6" />
+        )}
 
         {links.length === 0 ? (
           <p className="text-xs text-center" style={{ color: handleColor }}>No links here yet.</p>
