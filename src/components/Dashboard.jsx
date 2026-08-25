@@ -20,7 +20,7 @@ function SectionLabel({ children }) {
   );
 }
 
-export default function Dashboard({ session, profile }) {
+export default function Dashboard({ session, profile, onEditProfile }) {
   const [links, setLinks] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0);
   const [showPreview, setShowPreview] = useState(false);
@@ -125,10 +125,10 @@ export default function Dashboard({ session, profile }) {
 
   return (
     <div>
-      {/* Dashboard header — grounds the screen with a title and live
-          link count, which the old layout had no equivalent of. */}
+      {/* Dashboard header — grounds the screen with a title, live link
+          count, and quick access to editing the profile. */}
       {profile?.username && (
-        <div className="flex items-baseline justify-between mb-6 px-0.5">
+        <div className="flex items-start justify-between mb-6 px-0.5 gap-4">
           <div>
             <h1 className="text-xl font-semibold text-slate-800 dark:text-slate-100">
               Your page
@@ -136,6 +136,30 @@ export default function Dashboard({ session, profile }) {
             <p className="text-sm text-slate-500 dark:text-slate-400">
               {window.location.host}/{profile.username} · {links.length} {links.length === 1 ? 'link' : 'links'}
             </p>
+          </div>
+
+          <div className="relative shrink-0">
+            <a
+              href={`/${profile.username}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onMouseEnter={() => setShowPreview(true)}
+              onMouseLeave={() => setShowPreview(false)}
+              onTouchStart={startLongPress}
+              onTouchEnd={endLongPress}
+              onTouchCancel={endLongPress}
+              onClick={handlePreviewClick}
+              className="flex items-center justify-center gap-1.5 whitespace-nowrap px-4 py-2 bg-white dark:bg-slate-800 border border-[#2D5A27] dark:border-[#4CAF50] hover:bg-[#2D5A27]/5 dark:hover:bg-[#4CAF50]/10 text-[#2D5A27] dark:text-[#4CAF50] font-medium text-sm rounded-xl transition cursor-pointer shadow-sm"
+              title="Preview — click to open in a new tab"
+            >
+              Preview
+            </a>
+
+            {showPreview && (
+              <div className="absolute z-50 top-full right-0 mt-2">
+                <PagePreviewCard profile={previewProfile} links={links} />
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -177,29 +201,13 @@ export default function Dashboard({ session, profile }) {
                       <ShareProfileButton username={profile.username} />
                     </div>
 
-                    <div className="relative flex-1">
-                      <a
-                        href={`/${profile.username}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onMouseEnter={() => setShowPreview(true)}
-                        onMouseLeave={() => setShowPreview(false)}
-                        onTouchStart={startLongPress}
-                        onTouchEnd={endLongPress}
-                        onTouchCancel={endLongPress}
-                        onClick={handlePreviewClick}
-                        className="w-full h-full flex items-center justify-center gap-1.5 whitespace-nowrap py-2.5 bg-white dark:bg-slate-800 border border-[#2D5A27] dark:border-[#4CAF50] hover:bg-[#2D5A27]/5 dark:hover:bg-[#4CAF50]/10 text-[#2D5A27] dark:text-[#4CAF50] font-medium text-sm rounded-xl transition cursor-pointer shadow-sm"
-                        title="Preview — click to open in a new tab"
-                      >
-                        Preview
-                      </a>
-
-                      {showPreview && (
-                        <div className="absolute z-50 top-full right-0 mt-2">
-                          <PagePreviewCard profile={previewProfile} links={links} />
-                        </div>
-                      )}
-                    </div>
+                    <button
+                      type="button"
+                      onClick={onEditProfile}
+                      className="flex-1 flex items-center justify-center gap-1.5 whitespace-nowrap py-2.5 bg-white dark:bg-slate-800 border border-[#2D5A27] dark:border-[#4CAF50] hover:bg-[#2D5A27]/5 dark:hover:bg-[#4CAF50]/10 text-[#2D5A27] dark:text-[#4CAF50] font-medium text-sm rounded-xl transition cursor-pointer shadow-sm"
+                    >
+                      Edit Profile
+                    </button>
                   </div>
                 </div>
               </div>

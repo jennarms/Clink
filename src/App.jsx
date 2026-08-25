@@ -118,7 +118,7 @@ export default function App() {
                 onBack={goToDashboard}
               />
             ) : (
-              <Dashboard session={session} profile={profile} />
+              <Dashboard session={session} profile={profile} onEditProfile={goToEditProfile} />
             )}
           </div>
         </div>
