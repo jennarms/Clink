@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { LuCheck, LuImage, LuPalette, LuX } from 'react-icons/lu';
 import { useTheme } from '../context/useTheme';
 import { PALETTE, QUICK_ICONS, STYLES, cardStyle } from '../lib/linkStyles';
 import { supabase } from '../supabaseClient';
+import ImageCropModal from './ImageCropModal';
 import RenderIcon from './RenderIcon';
 
 export default function AddLinkForm({ userId, onLinkAdded }) {
@@ -17,6 +19,10 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
   const [accent, setAccent] = useState('#2D5A27');
   const [style, setStyle] = useState('solid');
   const [icon, setIcon] = useState('link');
+
+  // Raw picked file's object URL, fed into the crop modal. Null when the
+  // modal is closed.
+  const [cropSrc, setCropSrc] = useState(null);
 
   // Now pulled from ThemeContext instead of reading document.documentElement
   // directly, so this re-renders correctly if the user toggles the theme
@@ -43,15 +49,30 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
 
     if (!file.type.startsWith('image/')) {
       alert('Please choose an image file.');
+      e.target.value = '';
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
       alert('Image must be under 5MB.');
+      e.target.value = '';
       return;
     }
 
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
+    setCropSrc(URL.createObjectURL(file));
+    // Reset so picking the same file again still fires onChange.
+    e.target.value = '';
+  };
+
+  const closeCropModal = () => {
+    if (cropSrc) URL.revokeObjectURL(cropSrc);
+    setCropSrc(null);
+  };
+
+  const handleCropConfirm = (blob) => {
+    const croppedFile = new File([blob], 'icon.jpg', { type: 'image/jpeg' });
+    setImageFile(croppedFile);
+    setImagePreview(URL.createObjectURL(blob));
+    closeCropModal();
   };
 
   const handleAddLink = async (e) => {
@@ -139,10 +160,10 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
         <button
           type="button"
           onClick={resetForm}
-          className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm leading-none cursor-pointer"
+          className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 leading-none cursor-pointer"
           title="Cancel"
         >
-          ✕
+          <LuX className="w-4 h-4" />
         </button>
       </div>
 
@@ -174,7 +195,7 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
       {/* Image picker */}
       <div>
         <label className="flex items-center justify-center gap-2 w-full py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition">
-          <span className="text-sm">🖼️</span>
+          <LuImage className="w-4 h-4" />
           {imageFile ? 'Change image' : 'Add Image as Icon (optional)'}
           <input
             type="file"
@@ -194,10 +215,10 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
             <button
               type="button"
               onClick={() => { setImageFile(null); setImagePreview(null); }}
-              className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 hover:bg-black/75 text-white text-xs leading-none flex items-center justify-center cursor-pointer transition"
+              className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 hover:bg-black/75 text-white flex items-center justify-center cursor-pointer transition"
               title="Remove image"
             >
-              ✕
+              <LuX className="w-3.5 h-3.5" />
             </button>
           </div>
         )}
@@ -210,7 +231,7 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
           onClick={() => setShowDesign((prev) => !prev)}
           className="flex items-center justify-center gap-2 w-full py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition"
         >
-          <span className="text-sm">🎨</span>
+          <LuPalette className="w-4 h-4" />
           {showDesign ? 'Hide design options' : 'Customize Icon and Design (optional)'}
         </button>
 
@@ -241,7 +262,7 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
                         }}
                       >
                         {isActive && (
-                          <span className="text-white text-[11px] leading-none drop-shadow-sm">✓</span>
+                          <LuCheck className="w-3.5 h-3.5 text-white drop-shadow-sm" strokeWidth={3} />
                         )}
                       </button>
                     );
@@ -368,6 +389,14 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
           Cancel
         </button>
       </div>
+
+      {cropSrc && (
+        <ImageCropModal
+          src={cropSrc}
+          onConfirm={handleCropConfirm}
+          onCancel={closeCropModal}
+        />
+      )}
     </form>
   );
 }

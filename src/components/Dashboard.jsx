@@ -184,7 +184,7 @@ export default function Dashboard({ session, profile }) {
                         onTouchCancel={endLongPress}
                         onClick={handlePreviewClick}
                         className="w-full h-full flex items-center justify-center gap-1.5 whitespace-nowrap py-2.5 bg-white dark:bg-slate-800 border border-[#2D5A27] dark:border-[#4CAF50] hover:bg-[#2D5A27]/5 dark:hover:bg-[#4CAF50]/10 text-[#2D5A27] dark:text-[#4CAF50] font-medium text-sm rounded-xl transition cursor-pointer shadow-sm"
-                        title="Hover (or press and hold on mobile) to preview — click to open in a new tab"
+                        title="Preview — click to open in a new tab"
                       >
                         Preview
                       </a>

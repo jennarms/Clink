@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { LuCheck, LuImage, LuPalette, LuPencil, LuX } from 'react-icons/lu';
 import { useTheme } from '../context/useTheme';
 import { PALETTE, QUICK_ICONS, STYLES, cardStyle } from '../lib/linkStyles';
 import { supabase } from '../supabaseClient';
+import ConfirmDialog from './ConfirmDialog';
+import ImageCropModal from './ImageCropModal';
 import RenderIcon from './RenderIcon';
 
 export default function LinkItem({
@@ -19,7 +22,8 @@ export default function LinkItem({
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
-  const [activePanel, setActivePanel] = useState('none'); // 'none' | 'edit' | 'style' | 'delete'
+  const [activePanel, setActivePanel] = useState('none'); // 'none' | 'edit' | 'style'
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -35,6 +39,11 @@ export default function LinkItem({
   const [imagePreview, setImagePreview] = useState(link.image_url || null);
   const [imageRemoved, setImageRemoved] = useState(false);
 
+  // Raw picked file's object URL, fed into the crop modal. Null when the
+  // modal is closed.
+  const [cropSrc, setCropSrc] = useState(null);
+  const fileInputRef = useRef(null);
+
   const togglePanel = (panel) => {
     setActivePanel((prev) => (prev === panel ? 'none' : panel));
   };
@@ -45,16 +54,31 @@ export default function LinkItem({
 
     if (!file.type.startsWith('image/')) {
       alert('Please choose an image file.');
+      e.target.value = '';
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
       alert('Image must be under 5MB.');
+      e.target.value = '';
       return;
     }
 
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
+    setCropSrc(URL.createObjectURL(file));
+    // Reset so picking the same file again still fires onChange.
+    e.target.value = '';
+  };
+
+  const closeCropModal = () => {
+    if (cropSrc) URL.revokeObjectURL(cropSrc);
+    setCropSrc(null);
+  };
+
+  const handleCropConfirm = (blob) => {
+    const croppedFile = new File([blob], 'icon.jpg', { type: 'image/jpeg' });
+    setImageFile(croppedFile);
+    setImagePreview(URL.createObjectURL(blob));
     setImageRemoved(false);
+    closeCropModal();
   };
 
   const handleRemoveImage = () => {
@@ -67,6 +91,7 @@ export default function LinkItem({
     setDeleting(true);
     await onDeleteLink(link.id);
     setDeleting(false);
+    setShowDeleteConfirm(false);
   };
 
   const styleDirty =
@@ -268,26 +293,26 @@ export default function LinkItem({
           <button
             type="button"
             onClick={() => togglePanel('edit')}
-            className="p-1.5 rounded-lg hover:bg-black/10 transition-colors cursor-pointer text-sm"
+            className="p-1.5 rounded-lg hover:bg-black/10 transition-colors cursor-pointer"
             title="Edit link details"
           >
-            ✏️
+            <LuPencil className="w-4 h-4" />
           </button>
           <button
             type="button"
             onClick={() => togglePanel('style')}
-            className="p-1.5 rounded-lg hover:bg-black/10 transition-colors cursor-pointer text-sm"
+            className="p-1.5 rounded-lg hover:bg-black/10 transition-colors cursor-pointer"
             title="Customize this link"
           >
-            🎨
+            <LuPalette className="w-4 h-4" />
           </button>
           <button
             type="button"
-            onClick={() => togglePanel('delete')}
-            className="p-1.5 rounded-lg hover:bg-black/10 transition-colors cursor-pointer text-sm"
+            onClick={() => setShowDeleteConfirm(true)}
+            className="p-1.5 rounded-lg hover:bg-black/10 transition-colors cursor-pointer"
             title="Delete link"
           >
-            ✕
+            <LuX className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -336,9 +361,10 @@ export default function LinkItem({
             <div>
               <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1.5">Image</div>
               <label className="flex items-center justify-center gap-2 w-full py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition">
-                <span className="text-sm">🖼️</span>
+                <LuImage className="w-4 h-4" />
                 {imagePreview ? 'Change image' : 'Add Image as Icon (optional)'}
                 <input
+                  ref={fileInputRef}
                   type="file"
                   accept="image/*"
                   onChange={handleImageChange}
@@ -356,10 +382,10 @@ export default function LinkItem({
                   <button
                     type="button"
                     onClick={handleRemoveImage}
-                    className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 hover:bg-black/75 text-white text-xs leading-none flex items-center justify-center cursor-pointer transition"
+                    className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 hover:bg-black/75 text-white flex items-center justify-center cursor-pointer transition"
                     title="Remove image"
                   >
-                    ✕
+                    <LuX className="w-3.5 h-3.5" />
                   </button>
                 </div>
               )}
@@ -414,7 +440,7 @@ export default function LinkItem({
                       }}
                     >
                       {isActive && (
-                        <span className="text-white text-[11px] leading-none drop-shadow-sm">✓</span>
+                        <LuCheck className="w-3.5 h-3.5 text-white drop-shadow-sm" strokeWidth={3} />
                       )}
                     </button>
                   );
@@ -514,44 +540,24 @@ export default function LinkItem({
         </div>
       </div>
 
-      {/* Delete confirmation panel */}
-      <div
-        className={`grid transition-[grid-template-rows] duration-300 ease-out ${
-          activePanel === 'delete' ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-        }`}
-      >
-        <div className="overflow-hidden">
-          <div className="p-4 bg-[#F9F8F3] dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-700 space-y-3">
-            <div className="flex items-center gap-2.5">
-              <span className="w-7 h-7 shrink-0 rounded-full bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center text-xs">
-                ✕
-              </span>
-              <p className="text-sm text-slate-600 dark:text-slate-300">
-                Delete <span className="font-semibold text-[#1A1A1A] dark:text-slate-100">{link.title}</span>?
-                This can't be undone.
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setActivePanel('none')}
-                disabled={deleting}
-                className="flex-1 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-medium text-xs rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 transition cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmDelete}
-                disabled={deleting}
-                className="flex-1 py-1.5 bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium text-xs rounded-lg transition cursor-pointer"
-              >
-                {deleting ? 'Deleting...' : 'Delete link'}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      {cropSrc && (
+        <ImageCropModal
+          src={cropSrc}
+          onConfirm={handleCropConfirm}
+          onCancel={closeCropModal}
+        />
+      )}
+
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        title={`Delete "${link.title}"?`}
+        message="This can't be undone."
+        confirmLabel={deleting ? 'Deleting…' : 'Delete link'}
+        cancelLabel="Cancel"
+        danger
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
     </div>
   );
 }
