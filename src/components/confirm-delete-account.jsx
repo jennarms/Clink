@@ -99,7 +99,7 @@ export default function ConfirmDeleteAccount({ onAccountDeleted, onCancel }) {
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#2D5A27]/10 text-[#2D5A27] mb-1 mx-auto">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
                 <circle cx="12" cy="12" r="9" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 15q3 3 6 0" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 15q3 -3 6 0" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 9h.01M15 9h.01" />
               </svg>
             </div>
