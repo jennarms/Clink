@@ -1,19 +1,17 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 
 const STATUS_VERIFYING = 'verifying';
 const STATUS_DELETING = 'deleting';
 const STATUS_ERROR = 'error';
 
-// Route this at /confirm-delete-account.
+// Rendered directly by App.jsx when pathname === '/confirm-delete-account'.
 // When the user clicks the link from their email, Supabase automatically
 // exchanges the token in the URL for a session (detectSessionInUrl is on
-// by default). Once we see that session, we finish the deletion.
-export default function ConfirmDeleteAccount() {
+// by default). Once that session appears, we finish the deletion.
+export default function ConfirmDeleteAccount({ onAccountDeleted, onCancel }) {
   const [status, setStatus] = useState(STATUS_VERIFYING);
   const [error, setError] = useState('');
-  const navigate = useNavigate();
 
   useEffect(() => {
     let cancelled = false;
@@ -33,7 +31,7 @@ export default function ConfirmDeleteAccount() {
       }
 
       await supabase.auth.signOut();
-      navigate('/', { replace: true, state: { accountDeleted: true } });
+      onAccountDeleted();
     };
 
     // Case 1: session is already there by the time this mounts.
@@ -44,7 +42,7 @@ export default function ConfirmDeleteAccount() {
     });
 
     // Case 2: session arrives slightly after mount (Supabase is still
-    // parsing the URL). Listen for it.
+    // parsing the URL fragment). Listen for it.
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
         finishDeletion();
@@ -72,11 +70,11 @@ export default function ConfirmDeleteAccount() {
   }, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#F9F8F3] dark:bg-slate-950 flex items-center justify-center px-4">
       <div className="max-w-sm w-full text-center space-y-4">
         {status === STATUS_ERROR ? (
           <>
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-100 dark:bg-red-950/40 text-red-600 dark:text-red-400 mb-1">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-100 dark:bg-red-950/40 text-red-600 dark:text-red-400 mb-1 mx-auto">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
               </svg>
@@ -85,7 +83,7 @@ export default function ConfirmDeleteAccount() {
             <p className="text-sm text-slate-500">{error}</p>
             <button
               type="button"
-              onClick={() => navigate('/')}
+              onClick={onCancel}
               className="text-sm text-[#2D5A27] hover:underline font-medium"
             >
               ← Back to home
@@ -93,7 +91,7 @@ export default function ConfirmDeleteAccount() {
           </>
         ) : (
           <>
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-100 dark:bg-red-950/40 text-red-600 dark:text-red-400 mb-1 animate-pulse">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-100 dark:bg-red-950/40 text-red-600 dark:text-red-400 mb-1 animate-pulse mx-auto">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
               </svg>

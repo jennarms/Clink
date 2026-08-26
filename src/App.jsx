@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import AccountSettings from './components/AccountSettings';
 import AuthForm from './components/AuthForm';
+import ConfirmDeleteAccount from './components/confirm-delete-account';
 import Dashboard from './components/Dashboard';
 import EditProfilePage from './components/EditProfilePage';
 import Navbar from './components/Navbar';
@@ -12,7 +13,7 @@ import { supabase } from './supabaseClient';
 // NOT in this list is treated as a public profile lookup — so if you
 // add new app routes later, add them here too, or they'll be
 // swallowed by the username catch-all.
-const RESERVED_PATHS = ['/', '/reset-password', '/edit-profile', '/account-settings'];
+const RESERVED_PATHS = ['/', '/reset-password', '/edit-profile', '/account-settings', '/confirm-delete-account'];
 
 export default function App() {
   const [session, setSession] = useState(null);
@@ -26,6 +27,9 @@ export default function App() {
   );
   const [isAccountSettings, setIsAccountSettings] = useState(
     window.location.pathname === '/account-settings'
+  );
+  const [isConfirmingDeletion, setIsConfirmingDeletion] = useState(
+    window.location.pathname === '/confirm-delete-account'
   );
 
   const pathname = window.location.pathname;
@@ -89,6 +93,7 @@ export default function App() {
     window.history.pushState({}, '', '/');
     setIsEditingProfile(false);
     setIsAccountSettings(false);
+    setIsConfirmingDeletion(false);
   };
 
   const goToEditProfile = () => {
@@ -117,7 +122,21 @@ export default function App() {
     setProfile(null);
     setIsAccountSettings(false);
     setIsEditingProfile(false);
+    setIsConfirmingDeletion(false);
   };
+
+  // Confirming account deletion via the link the user was emailed. This
+  // must be checked before the public-profile catch-all below (handled by
+  // RESERVED_PATHS) and works regardless of whether `session` has been
+  // populated yet — ConfirmDeleteAccount manages that itself.
+  if (isConfirmingDeletion) {
+    return (
+      <ConfirmDeleteAccount
+        onAccountDeleted={handleAccountDeleted}
+        onCancel={goToDashboard}
+      />
+    );
+  }
 
   // Public profile pages (linkie.com/rob) render standalone — no auth
   // needed, no app chrome, and works whether or not anyone is logged in.
