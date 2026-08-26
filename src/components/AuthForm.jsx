@@ -45,6 +45,7 @@ export default function AuthForm() {
   const [username, setUsername] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   // Non-blocking password strength check
   const getPasswordStrength = (pass) => {
@@ -87,6 +88,10 @@ export default function AuthForm() {
   const handleSignUp = async () => {
     if (password !== confirmPassword) {
       throw new Error('Passwords do not match.');
+    }
+
+    if (!agreedToTerms) {
+      throw new Error('Please agree to the Terms of Service and Privacy Policy to continue.');
     }
 
     const displayName = `${firstName.trim()} ${lastName.trim()}`.trim();
@@ -225,7 +230,11 @@ export default function AuthForm() {
   const SubmitButton = (
     <button
       type="submit"
-      disabled={loading || (authMode === 'signup' && confirmPassword && password !== confirmPassword)}
+      disabled={
+        loading ||
+        (authMode === 'signup' &&
+          ((confirmPassword && password !== confirmPassword) || !agreedToTerms))
+      }
       className="w-full py-2 px-4 bg-[#2D5A27] hover:bg-[#23471e] text-white font-semibold text-sm rounded-xl transition disabled:opacity-50 mt-1 cursor-pointer shadow-sm"
     >
       {loading
@@ -345,6 +354,39 @@ export default function AuthForm() {
         {confirmPassword && password !== confirmPassword && (
           <p className="mt-1 text-xs text-red-500">Passwords do not match.</p>
         )}
+      </div>
+
+      <div className="flex items-start gap-2 pt-1">
+        <input
+          type="checkbox"
+          id="agree-to-terms"
+          checked={agreedToTerms}
+          onChange={(e) => setAgreedToTerms(e.target.checked)}
+          className="mt-0.5 h-3.5 w-3.5 rounded border-slate-300 text-[#2D5A27] focus:ring-[#2D5A27]/30 cursor-pointer"
+        />
+        <label htmlFor="agree-to-terms" className="text-xs text-slate-500 leading-snug cursor-pointer">
+          I agree to Linkie's{' '}
+          <a
+            href="/terms"
+            target="_blank"
+            rel="noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="text-[#2D5A27] font-medium hover:underline"
+          >
+            Terms of Service
+          </a>{' '}
+          and{' '}
+          <a
+            href="/privacy"
+            target="_blank"
+            rel="noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="text-[#2D5A27] font-medium hover:underline"
+          >
+            Privacy Policy
+          </a>
+          .
+        </label>
       </div>
     </>
   );

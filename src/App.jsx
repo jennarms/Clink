@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { PrivacyPolicy, TermsOfService } from './components/AboutWebsite';
 import AccountSettings from './components/AccountSettings';
 import AuthForm from './components/AuthForm';
 import ConfirmDeleteAccount from './components/confirm-delete-account';
@@ -13,7 +14,15 @@ import { supabase } from './supabaseClient';
 // NOT in this list is treated as a public profile lookup — so if you
 // add new app routes later, add them here too, or they'll be
 // swallowed by the username catch-all.
-const RESERVED_PATHS = ['/', '/reset-password', '/edit-profile', '/account-settings', '/confirm-delete-account'];
+const RESERVED_PATHS = [
+  '/',
+  '/reset-password',
+  '/edit-profile',
+  '/account-settings',
+  '/confirm-delete-account',
+  '/terms',
+  '/privacy',
+];
 
 export default function App() {
   const [session, setSession] = useState(null);
@@ -31,6 +40,12 @@ export default function App() {
   const [isConfirmingDeletion, setIsConfirmingDeletion] = useState(
     window.location.pathname === '/confirm-delete-account'
   );
+  const [isViewingTerms, setIsViewingTerms] = useState(
+    window.location.pathname === '/terms'
+  );
+  const [isViewingPrivacy, setIsViewingPrivacy] = useState(
+    window.location.pathname === '/privacy'
+  );
 
   const pathname = window.location.pathname;
   const isPublicProfileRoute = !RESERVED_PATHS.includes(pathname);
@@ -45,6 +60,17 @@ export default function App() {
       setSession(session);
       if (event === 'PASSWORD_RECOVERY') {
         setIsResettingPassword(true);
+      }
+      if (event === 'SIGNED_IN') {
+        // Always land on the dashboard after logging in or signing up,
+        // no matter which page (e.g. /terms, /privacy) they came from.
+        window.history.pushState({}, '', '/');
+        setIsResettingPassword(false);
+        setIsEditingProfile(false);
+        setIsAccountSettings(false);
+        setIsConfirmingDeletion(false);
+        setIsViewingTerms(false);
+        setIsViewingPrivacy(false);
       }
     });
 
@@ -94,6 +120,8 @@ export default function App() {
     setIsEditingProfile(false);
     setIsAccountSettings(false);
     setIsConfirmingDeletion(false);
+    setIsViewingTerms(false);
+    setIsViewingPrivacy(false);
   };
 
   const goToEditProfile = () => {
@@ -135,6 +163,23 @@ export default function App() {
         onAccountDeleted={handleAccountDeleted}
         onCancel={goToDashboard}
       />
+    );
+  }
+
+  // Terms of Service and Privacy Policy render standalone — no auth
+  // needed, works whether or not anyone is logged in (e.g. someone
+  // reading them before creating an account, from a link in AuthForm).
+  if (isViewingTerms || isViewingPrivacy) {
+    return (
+      <div className="min-h-screen bg-[#F9F8F3] dark:bg-slate-950 text-[#1A1A1A] dark:text-slate-100 flex flex-col items-center p-4 pt-8">
+        <div className="w-full max-w-md bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+          {isViewingTerms ? (
+            <TermsOfService onBack={goToDashboard} />
+          ) : (
+            <PrivacyPolicy onBack={goToDashboard} />
+          )}
+        </div>
+      </div>
     );
   }
 
