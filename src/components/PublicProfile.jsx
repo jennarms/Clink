@@ -6,10 +6,40 @@ import SpotifyEmbed from './SpotifyEmbed';
 
 const DEFAULT_BG = '#F9F8F3';
 
+function getInitials(name) {
+  if (!name) return '';
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase())
+    .join('');
+}
+
+function ProfileSkeleton() {
+  return (
+    <div className="min-h-screen bg-[#F9F8F3] flex flex-col items-center px-4 py-14">
+      <div className="w-full max-w-sm animate-pulse">
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-20 h-20 rounded-full bg-black/10 mb-4" />
+          <div className="h-5 w-32 rounded bg-black/10 mb-2" />
+          <div className="h-3 w-20 rounded bg-black/10" />
+        </div>
+        <div className="space-y-3">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="h-16 w-full rounded-xl bg-black/10" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function PublicProfile({ username }) {
   const [status, setStatus] = useState('loading');
   const [profile, setProfile] = useState(null);
   const [links, setLinks] = useState([]);
+  const [revealed, setRevealed] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -53,22 +83,32 @@ export default function PublicProfile({ username }) {
     };
   }, [username]);
 
+  // Trigger the entrance fade/slide once content is ready, on the next
+  // frame so the transition actually animates instead of snapping in.
+  useEffect(() => {
+    if (status === 'found') {
+      const id = requestAnimationFrame(() => setRevealed(true));
+      return () => cancelAnimationFrame(id);
+    }
+  }, [status]);
+
   if (status === 'loading') {
-    return (
-      <div className="min-h-screen bg-[#F9F8F3] flex items-center justify-center">
-        <p className="text-sm text-slate-400">Loading...</p>
-      </div>
-    );
+    return <ProfileSkeleton />;
   }
 
   if (status === 'not-found') {
     return (
       <div className="min-h-screen bg-[#F9F8F3] flex flex-col items-center justify-center p-4 text-center">
-        <h1 className="text-2xl font-bold text-[#2D5A27] mb-2">Linkie</h1>
-        <p className="text-slate-600 mb-1">There is no page at /{username}.</p>
-        <a href="/" className="text-sm text-[#2D5A27] hover:underline font-medium">
-          Go to Linkie home
-        </a>
+        <div className="bg-white rounded-2xl shadow-sm px-8 py-10 max-w-xs w-full">
+          <h1 className="text-2xl font-bold text-[#2D5A27] mb-2">Linkie</h1>
+          <p className="text-slate-600 mb-4 text-sm">There is no page at /{username}.</p>
+          <a
+            href="/"
+            className="inline-block text-sm text-[#2D5A27] hover:underline font-medium"
+          >
+            Go to Linkie home
+          </a>
+        </div>
       </div>
     );
   }
@@ -86,7 +126,8 @@ export default function PublicProfile({ username }) {
   const footerColor = isDark ? '#475569' : '#CBD5E1';
   const avatarBorder = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)';
   const avatarFallbackBg = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(45,90,39,0.15)';
-  const displayName = profile.display_name || '@' + profile.username; 
+  const avatarFallbackText = isDark ? '#F1F5F9' : '#2D5A27';
+  const displayName = profile.display_name || '@' + profile.username;
 
   const pageStyle = isImageBg
     ? {
@@ -97,10 +138,35 @@ export default function PublicProfile({ username }) {
       }
     : { background: pageBg };
 
+  // Image backgrounds vary too much to guarantee text contrast, so the
+  // header sits on a translucent glass panel instead of directly on the
+  // photo — keeps it readable no matter what's behind it.
+  const headerWrapStyle = isImageBg
+    ? {
+        background: 'rgba(255,255,255,0.72)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+      }
+    : undefined;
+
   return (
-    <div className="min-h-screen flex flex-col items-center px-4 py-14 transition-colors" style={pageStyle}>
-      <div className="w-full max-w-sm">
-        <div className="flex flex-col items-center text-center mb-8">
+    <div
+      className="min-h-screen flex flex-col items-center px-4 py-14 transition-colors"
+      style={pageStyle}
+    >
+      <div
+        className="w-full max-w-sm transition-all duration-500 ease-out"
+        style={{
+          opacity: revealed ? 1 : 0,
+          transform: revealed ? 'translateY(0)' : 'translateY(8px)',
+        }}
+      >
+        <div
+          className={`flex flex-col items-center text-center mb-8 ${
+            isImageBg ? 'rounded-2xl px-5 py-6 shadow-sm' : ''
+          }`}
+          style={headerWrapStyle}
+        >
           {profile.avatar_url ? (
             <img
               src={profile.avatar_url}
@@ -109,7 +175,12 @@ export default function PublicProfile({ username }) {
               style={{ border: `1px solid ${avatarBorder}` }}
             />
           ) : (
-            <div className="w-20 h-20 rounded-full mb-4" style={{ background: avatarFallbackBg }} />
+            <div
+              className="w-20 h-20 rounded-full mb-4 flex items-center justify-center text-lg font-semibold"
+              style={{ background: avatarFallbackBg, color: avatarFallbackText }}
+            >
+              {getInitials(displayName) || '🔗'}
+            </div>
           )}
           <h1 className="text-xl font-bold" style={{ color: nameColor }}>
             {displayName}
