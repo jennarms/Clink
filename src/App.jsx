@@ -70,6 +70,21 @@ export default function App() {
     return () => { isMounted = false; };
   }, [session, profileVersion]);
 
+  // Pulls the latest user record from the Supabase SERVER (not local
+  // cache) so a confirmed email change shows up even if it was
+  // confirmed in a different browser/tab.
+  const refreshSession = async () => {
+    const { data, error } = await supabase.auth.refreshSession();
+    if (!error && data?.session) {
+      setSession(data.session);
+    } else {
+      // Refresh token may be temporarily stale right after an email
+      // change — fall back to whatever's currently cached instead.
+      const { data: fallback } = await supabase.auth.getSession();
+      if (fallback?.session) setSession(fallback.session);
+    }
+  };
+
   const goToDashboard = () => {
     window.history.pushState({}, '', '/');
     setIsEditingProfile(false);
@@ -86,6 +101,7 @@ export default function App() {
     window.history.pushState({}, '', '/account-settings');
     setIsAccountSettings(true);
     setIsEditingProfile(false);
+    refreshSession(); // catch any email confirmation that happened elsewhere
   };
 
   const handleProfileSaved = () => {
@@ -134,6 +150,7 @@ export default function App() {
                 profile={{ ...profile, email: session.user.email }}
                 onBack={goToDashboard}
                 onEditProfileInfo={goToEditProfile}
+                onRefreshSession={refreshSession}
               />
             ) : (
               <Dashboard session={session} profile={profile} onEditProfile={goToAccountSettings} />

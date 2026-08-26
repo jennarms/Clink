@@ -8,11 +8,17 @@ const EMAIL = 'email';
 const PASSWORD = 'password';
 const ABOUT = 'about';
 
-export default function AccountSettings({ profile, onBack, onEditProfileInfo }) {
+export default function AccountSettings({ profile, onBack, onEditProfileInfo, onRefreshSession }) {
   const [view, setView] = useState(MENU);
 
   if (view === EMAIL) {
-    return <ChangeEmail profile={profile} onComplete={() => setView(MENU)} />;
+    return (
+      <ChangeEmail
+        profile={profile}
+        onComplete={() => setView(MENU)}
+        onRefreshSession={onRefreshSession}
+      />
+    );
   }
   if (view === PASSWORD) {
     return <ResetPassword onComplete={() => setView(MENU)} />;
