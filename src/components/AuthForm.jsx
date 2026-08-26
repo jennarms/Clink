@@ -33,6 +33,22 @@ const RESERVED_USERNAMES = [
   'undefined',
 ];
 
+// Masks an email for display without revealing it in full, e.g.
+// "jordan.reyes@gmail.com" -> "j**********s@g****.com"
+function maskEmail(email) {
+  const [local, domain] = email.split('@');
+  const domainParts = domain.split('.');
+  const domainName = domainParts[0];
+  const tld = domainParts.slice(1).join('.');
+
+  const maskChunk = (str) => {
+    if (str.length <= 2) return str[0] + '*';
+    return str[0] + '*'.repeat(str.length - 2) + str[str.length - 1];
+  };
+
+  return `${maskChunk(local)}@${maskChunk(domainName)}.${tld}`;
+}
+
 export default function AuthForm() {
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'signup' | 'forgot'
   const [loading, setLoading] = useState(false);
@@ -149,10 +165,27 @@ export default function AuthForm() {
   };
 
   const handleForgotPassword = async () => {
-    const resetEmail = email.trim() || identifier.trim();
+    const raw = identifier.trim();
 
-    if (!resetEmail || !resetEmail.includes('@')) {
-      throw new Error('Please enter a valid email address.');
+    if (!raw) {
+      throw new Error('Please enter your email or username.');
+    }
+
+    let resetEmail = raw;
+
+    if (!raw.includes('@')) {
+      // Same RPC handleLogin uses to resolve a username to an email —
+      // it only ever returns the email string, nothing else about the
+      // underlying row.
+      const { data: resolvedEmail, error: lookupError } = await supabase.rpc(
+        'get_email_for_username',
+        { p_username: raw }
+      );
+
+      if (lookupError || !resolvedEmail) {
+        throw new Error('No account found with that username.');
+      }
+      resetEmail = resolvedEmail;
     }
 
     const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
@@ -161,7 +194,7 @@ export default function AuthForm() {
 
     if (error) throw error;
 
-    setMessage('Password reset link sent! Please check your email inbox.');
+    setMessage(`Reset link sent to ${maskEmail(resetEmail)}. Check your inbox.`);
   };
 
   const handleSubmit = async (e) => {
@@ -415,7 +448,6 @@ export default function AuthForm() {
           <button
             type="button"
             onClick={() => {
-              setEmail(identifier.includes('@') ? identifier : '');
               setAuthMode('forgot');
               setMessage('');
             }}
@@ -439,18 +471,18 @@ export default function AuthForm() {
   const ForgotFields = (
     <div>
       <label className="block text-xs font-semibold uppercase tracking-wider mb-1 text-slate-600">
-        Email Address
+        Email or Username
       </label>
       <input
-        type="email"
+        type="text"
         required
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        value={identifier}
+        onChange={(e) => setIdentifier(e.target.value)}
         className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-[#1A1A1A] placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 focus:border-[#2D5A27] shadow-sm"
-        placeholder="you@example.com"
+        placeholder="you@example.com or yourname"
       />
       <p className="mt-1 text-xs text-slate-500">
-        Enter the email address associated with your account to receive a reset link.
+        We'll send a reset link to the email on that account.
       </p>
     </div>
   );
