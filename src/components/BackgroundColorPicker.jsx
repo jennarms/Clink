@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../supabaseClient';
+import SavedConfirmation from './SavedConfirmation';
+import useSavedConfirmation from './useSavedConfirmation';
 
 const DEFAULT_COLOR = '#F9F8F3';
 const BUCKET = 'backgrounds';
@@ -46,6 +48,11 @@ export default function BackgroundColorPicker({ userId, initialType, initialValu
   const [previewUrl, setPreviewUrl] = useState(null);
   const [saving, setSaving] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const {
+    visible: justSaved,
+    trigger: showSavedConfirmation,
+    dismiss: dismissSavedConfirmation,
+  } = useSavedConfirmation();
   const fileInputRef = useRef(null);
 
   const currentSavedType = initialType === 'image' ? 'image' : 'color';
@@ -108,6 +115,7 @@ export default function BackgroundColorPicker({ userId, initialType, initialValu
       setSaving(false);
       if (error) return alert(error.message);
       if (onSaved) onSaved({ type: 'color', value: color });
+      showSavedConfirmation();
       return;
     }
 
@@ -148,6 +156,7 @@ export default function BackgroundColorPicker({ userId, initialType, initialValu
     setPendingFile(null);
     setPreviewUrl(null);
     if (onSaved) onSaved({ type: 'image', value: publicUrl });
+    showSavedConfirmation();
   };
 
   const renderSwatchRow = (swatches) => (
@@ -327,6 +336,16 @@ export default function BackgroundColorPicker({ userId, initialType, initialValu
         >
           {saving ? 'Saving…' : mode === 'color' ? 'Save background color' : 'Save background image'}
         </button>
+
+        <SavedConfirmation
+          show={justSaved}
+          onDismiss={dismissSavedConfirmation}
+          message={
+            <>
+              Background saved. Hover or click <strong className="font-semibold">Preview</strong> to see it live.
+            </>
+          }
+        />
       </div>
     </div>
   );
