@@ -149,11 +149,11 @@ function ContactSupport({ onBack }) {
 
       <div className="rounded-xl border border-slate-200 dark:border-slate-700 divide-y divide-slate-100 dark:divide-slate-700 overflow-hidden">
         <a
-          href="mailto:support@linkie.app"
+          href="mailto:emailnotupdated"
           className="px-4 py-3 flex justify-between hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
         >
           <span className="text-slate-500 dark:text-slate-400">Email</span>
-          <span style={{ color: ACCENT }}>support@linkie.app</span>
+          <span style={{ color: ACCENT }}>no contact support yet</span>
         </a>
       </div>
 
