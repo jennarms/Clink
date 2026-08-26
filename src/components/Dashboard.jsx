@@ -198,7 +198,7 @@ export default function Dashboard({ session, profile, onEditProfile }) {
 
                   <div className="flex items-stretch gap-2">
                     <div className="flex-1">
-                      <ShareProfileButton username={profile.username} />
+                      <ShareProfileButton username={profile.username} profile={profile} />
                     </div>
 
                     <button
