@@ -1,11 +1,15 @@
 import { useState } from 'react';
 import { supabase } from '../supabaseClient';
+import SavedConfirmation from './SavedConfirmation';
+import useSavedConfirmation from './useSavedConfirmation';
 
 export default function ResetPassword({ onComplete }) {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+
+  const { visible: savedVisible, trigger: triggerSaved, dismiss: dismissSaved } = useSavedConfirmation();
 
   const handleUpdatePassword = async (e) => {
     e.preventDefault();
@@ -24,20 +28,29 @@ export default function ResetPassword({ onComplete }) {
 
     if (error) {
       setMessage(`Error: ${error.message}`);
-    } else {
-      setMessage('Password updated successfully! Redirecting...');
-      setTimeout(() => {
-        if (onComplete) onComplete();
-      }, 1500);
+      setLoading(false);
+      return;
     }
+
+    triggerSaved();
+
+    // The password is changed, but the browser still holds the temporary
+    // recovery session from the email link. Sign out of it so the user
+    // lands back on Sign In and has to log in with the new password,
+    // instead of being carried straight into the dashboard on that
+    // leftover session.
+    await supabase.auth.signOut();
+
+    setTimeout(() => {
+      if (onComplete) onComplete();
+    }, 1800);
+
     setLoading(false);
   };
 
-  // Clicking a password-reset email link gives Supabase a real (if
-  // temporary) session. Cancelling out of this form used to leave that
-  // session in place, so the app's auth listener treated the user as
-  // logged in and routed them to the dashboard. Signing out first closes
-  // that session before handing control back to onComplete.
+  // Cancelling never leaves a lingering recovery session behind either —
+  // otherwise the app's auth listener would see a valid session and
+  // route to the dashboard as if the user had actually signed in.
   const handleCancel = async () => {
     await supabase.auth.signOut();
     if (onComplete) onComplete();
@@ -177,6 +190,12 @@ export default function ResetPassword({ onComplete }) {
           ← Cancel and return to Sign In
         </button>
       </div>
+
+      <SavedConfirmation
+        show={savedVisible}
+        onDismiss={dismissSaved}
+        message="Password updated. Please sign in again."
+      />
     </div>
   );
 }
