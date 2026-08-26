@@ -101,16 +101,16 @@ export default function ConfirmDeleteAccount({ onAccountDeleted, onCancel }) {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h2 className="text-xl font-bold text-slate-700 dark:text-slate-200">Deletion Completed</h2>
+            <h2 className="text-xl font-bold text-slate-700 dark:text-slate-200">Sad to see you go 👋</h2>
             <p className="text-sm text-slate-500">
-              Your account and all your saved links have been permanently deleted.
+              Your account and all your saved links have been permanently deleted. Thanks for giving Linkie a try — you're welcome back anytime.
             </p>
             <button
               type="button"
               onClick={onAccountDeleted}
               className="w-full py-2.5 px-4 bg-[#2D5A27] hover:bg-[#234620] text-white font-semibold text-sm rounded-xl transition cursor-pointer shadow-sm"
             >
-              Go back to login
+              Back to login
             </button>
           </>
         )}
