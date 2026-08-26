@@ -3,12 +3,14 @@ import { supabase } from '../supabaseClient';
 
 const STATUS_VERIFYING = 'verifying';
 const STATUS_DELETING = 'deleting';
+const STATUS_DONE = 'done';
 const STATUS_ERROR = 'error';
 
 // Rendered directly by App.jsx when pathname === '/confirm-delete-account'.
 // When the user clicks the link from their email, Supabase automatically
 // exchanges the token in the URL for a session (detectSessionInUrl is on
-// by default). Once that session appears, we finish the deletion.
+// by default). Once that session appears, we finish the deletion, then wait
+// for the user to click through rather than auto-redirecting.
 export default function ConfirmDeleteAccount({ onAccountDeleted, onCancel }) {
   const [status, setStatus] = useState(STATUS_VERIFYING);
   const [error, setError] = useState('');
@@ -31,7 +33,9 @@ export default function ConfirmDeleteAccount({ onAccountDeleted, onCancel }) {
       }
 
       await supabase.auth.signOut();
-      onAccountDeleted();
+
+      if (cancelled) return;
+      setStatus(STATUS_DONE);
     };
 
     // Case 1: session is already there by the time this mounts.
@@ -66,13 +70,12 @@ export default function ConfirmDeleteAccount({ onAccountDeleted, onCancel }) {
       listener?.subscription?.unsubscribe();
       clearTimeout(timeout);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <div className="min-h-screen bg-[#F9F8F3] dark:bg-slate-950 flex items-center justify-center px-4">
       <div className="max-w-sm w-full text-center space-y-4">
-        {status === STATUS_ERROR ? (
+        {status === STATUS_ERROR && (
           <>
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-100 dark:bg-red-950/40 text-red-600 dark:text-red-400 mb-1 mx-auto">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
@@ -89,7 +92,30 @@ export default function ConfirmDeleteAccount({ onAccountDeleted, onCancel }) {
               ← Back to home
             </button>
           </>
-        ) : (
+        )}
+
+        {status === STATUS_DONE && (
+          <>
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#2D5A27]/10 text-[#2D5A27] mb-1 mx-auto">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-slate-700 dark:text-slate-200">Deletion Completed</h2>
+            <p className="text-sm text-slate-500">
+              Your account and all your saved links have been permanently deleted.
+            </p>
+            <button
+              type="button"
+              onClick={onAccountDeleted}
+              className="w-full py-2.5 px-4 bg-[#2D5A27] hover:bg-[#234620] text-white font-semibold text-sm rounded-xl transition cursor-pointer shadow-sm"
+            >
+              Go back to login
+            </button>
+          </>
+        )}
+
+        {(status === STATUS_VERIFYING || status === STATUS_DELETING) && (
           <>
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-100 dark:bg-red-950/40 text-red-600 dark:text-red-400 mb-1 animate-pulse mx-auto">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
