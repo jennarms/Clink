@@ -242,7 +242,15 @@ export default function PublicProfile({ username }) {
           </div>
         )}
 
-        <p className="text-center text-[11px] mt-10" style={{ color: footerColor }}>
+        <a
+          href="/?signup=1"
+          className="flex items-center justify-center gap-2 w-full py-3 px-4 mt-8 rounded-xl font-medium text-sm border-2 border-dashed transition-colors hover:bg-black/5"
+          style={{ borderColor: footerColor, color: isDark ? '#F1F5F9' : '#1A1A1A' }}
+        >
+          🔗 Create your own Linkie
+        </a>
+
+        <p className="text-center text-[11px] mt-6" style={{ color: footerColor }}>
           Made with Linkie
         </p>
       </div>
