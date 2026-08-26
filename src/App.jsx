@@ -109,6 +109,16 @@ export default function App() {
     goToDashboard();
   };
 
+  // Called after DeleteAccount successfully removes the user's row.
+  // Signs the app back to a logged-out state and resets the URL.
+  const handleAccountDeleted = () => {
+    window.history.pushState({}, '', '/');
+    setSession(null);
+    setProfile(null);
+    setIsAccountSettings(false);
+    setIsEditingProfile(false);
+  };
+
   // Public profile pages (linkie.com/rob) render standalone — no auth
   // needed, no app chrome, and works whether or not anyone is logged in.
   if (isPublicProfileRoute) {
@@ -143,17 +153,17 @@ export default function App() {
                 session={session}
                 profile={profile}
                 onDone={handleProfileSaved}
-                onBack={goToAccountSettings}
+                onBack={goToDashboard}
               />
             ) : isAccountSettings ? (
               <AccountSettings
                 profile={{ ...profile, email: session.user.email }}
                 onBack={goToDashboard}
-                onEditProfileInfo={goToEditProfile}
                 onRefreshSession={refreshSession}
+                onAccountDeleted={handleAccountDeleted}
               />
             ) : (
-              <Dashboard session={session} profile={profile} onEditProfile={goToAccountSettings} />
+              <Dashboard session={session} profile={profile} onEditProfile={goToEditProfile} />
             )}
           </div>
         </div>

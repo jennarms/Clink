@@ -36,7 +36,7 @@ export default function AboutWebsite({ onComplete }) {
 
       <div className="pt-2 text-center border-t border-slate-100 dark:border-slate-700">
         <button type="button" onClick={onComplete} className="text-xs text-slate-500 hover:text-[#2D5A27] hover:underline cursor-pointer font-medium">
-          Back to Account Settings
+          ← Back to Account Settings
         </button>
       </div>
     </div>
