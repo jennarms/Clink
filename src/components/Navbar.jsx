@@ -3,7 +3,7 @@ import { supabase } from '../supabaseClient';
 import ConfirmDialog from './ConfirmDialog';
 import DarkModeToggle from './DarkModeToggle';
 
-export default function Navbar({ profile, onEditProfile, onLogoClick }) {
+export default function Navbar({ profile, onAccountSettings, onLogoClick }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const menuRef = useRef(null);
@@ -49,7 +49,7 @@ export default function Navbar({ profile, onEditProfile, onLogoClick }) {
             {/* Desktop nav */}
             <div className="hidden sm:flex items-center gap-6">
               <button
-                onClick={onEditProfile}
+                onClick={onAccountSettings}
                 className="flex items-center gap-3 text-base text-slate-600 dark:text-slate-300 hover:text-[#2D5A27] dark:hover:text-[#4CAF50] transition-colors cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D5A27] dark:focus-visible:ring-[#4CAF50] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
               >
                 {profile?.avatar_url ? (
@@ -95,7 +95,7 @@ export default function Navbar({ profile, onEditProfile, onLogoClick }) {
               <button
                 onClick={() => {
                   setMenuOpen(false);
-                  onEditProfile();
+                  onAccountSettings();
                 }}
                 className="w-full flex items-center gap-3 text-base text-slate-700 dark:text-slate-200 cursor-pointer px-3 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left"
               >
@@ -104,7 +104,7 @@ export default function Navbar({ profile, onEditProfile, onLogoClick }) {
                 ) : (
                   <div className="w-9 h-9 rounded-full bg-[#2D5A27]/15 flex-shrink-0" />
                 )}
-                <span className="font-medium truncate">{displayName || 'Edit profile'}</span>
+                <span className="font-medium truncate">{displayName || 'Account Settings'}</span>
               </button>
 
               <div className="flex items-center justify-between px-3 py-3">

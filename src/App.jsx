@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import AccountSettings from './components/AccountSettings';
 import AuthForm from './components/AuthForm';
 import Dashboard from './components/Dashboard';
 import EditProfilePage from './components/EditProfilePage';
@@ -11,7 +12,7 @@ import { supabase } from './supabaseClient';
 // NOT in this list is treated as a public profile lookup — so if you
 // add new app routes later, add them here too, or they'll be
 // swallowed by the username catch-all.
-const RESERVED_PATHS = ['/', '/reset-password', '/edit-profile'];
+const RESERVED_PATHS = ['/', '/reset-password', '/edit-profile', '/account-settings'];
 
 export default function App() {
   const [session, setSession] = useState(null);
@@ -22,6 +23,9 @@ export default function App() {
   );
   const [isEditingProfile, setIsEditingProfile] = useState(
     window.location.pathname === '/edit-profile'
+  );
+  const [isAccountSettings, setIsAccountSettings] = useState(
+    window.location.pathname === '/account-settings'
   );
 
   const pathname = window.location.pathname;
@@ -69,11 +73,19 @@ export default function App() {
   const goToDashboard = () => {
     window.history.pushState({}, '', '/');
     setIsEditingProfile(false);
+    setIsAccountSettings(false);
   };
 
   const goToEditProfile = () => {
     window.history.pushState({}, '', '/edit-profile');
     setIsEditingProfile(true);
+    setIsAccountSettings(false);
+  };
+
+  const goToAccountSettings = () => {
+    window.history.pushState({}, '', '/account-settings');
+    setIsAccountSettings(true);
+    setIsEditingProfile(false);
   };
 
   const handleProfileSaved = () => {
@@ -103,11 +115,11 @@ export default function App() {
   if (session) {
     return (
       <div className="min-h-screen bg-[#F9F8F3] dark:bg-slate-950 text-[#1A1A1A] dark:text-slate-100">
-        <Navbar profile={profile} onEditProfile={goToEditProfile} onLogoClick={goToDashboard} />
+        <Navbar profile={profile} onAccountSettings={goToAccountSettings} onLogoClick={goToDashboard} />
         <div className="flex flex-col items-center p-4 pt-8">
           <div
             className={`w-full bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 ${
-              isEditingProfile ? 'max-w-md' : 'max-w-5xl'
+              isEditingProfile || isAccountSettings ? 'max-w-md' : 'max-w-5xl'
             }`}
           >
             {isEditingProfile ? (
@@ -115,10 +127,16 @@ export default function App() {
                 session={session}
                 profile={profile}
                 onDone={handleProfileSaved}
+                onBack={goToAccountSettings}
+              />
+            ) : isAccountSettings ? (
+              <AccountSettings
+                profile={{ ...profile, email: session.user.email }}
                 onBack={goToDashboard}
+                onEditProfileInfo={goToEditProfile}
               />
             ) : (
-              <Dashboard session={session} profile={profile} onEditProfile={goToEditProfile} />
+              <Dashboard session={session} profile={profile} onEditProfile={goToAccountSettings} />
             )}
           </div>
         </div>
