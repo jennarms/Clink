@@ -6,6 +6,8 @@ import { supabase } from '../supabaseClient';
 import ConfirmDialog from './ConfirmDialog';
 import ImageCropModal from './ImageCropModal';
 import RenderIcon from './RenderIcon';
+import SavedConfirmation from './SavedConfirmation';
+import useSavedConfirmation from './useSavedConfirmation';
 
 export default function LinkItem({
   link,
@@ -26,6 +28,8 @@ export default function LinkItem({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [uploading, setUploading] = useState(false);
+
+  const { visible: savedVisible, trigger: triggerSaved, dismiss: dismissSaved } = useSavedConfirmation();
 
   const [accent, setAccent] = useState(link.accent_color || '#2D5A27');
   const [style, setStyle] = useState(link.style || 'solid');
@@ -120,6 +124,7 @@ export default function LinkItem({
       onUpdateLink(link.id, { accent_color: accent, style: style, icon: icon });
     }
     setActivePanel('none');
+    triggerSaved();
   };
 
   const handleSaveDetails = async (e) => {
@@ -175,6 +180,7 @@ export default function LinkItem({
     setImageFile(null);
     setImageRemoved(false);
     setActivePanel('none');
+    triggerSaved();
   };
 
   const handleCancelEdit = () => {
@@ -557,6 +563,12 @@ export default function LinkItem({
         danger
         onConfirm={handleConfirmDelete}
         onCancel={() => setShowDeleteConfirm(false)}
+      />
+
+      <SavedConfirmation
+        show={savedVisible}
+        onDismiss={dismissSaved}
+        message="Link saved."
       />
     </div>
   );

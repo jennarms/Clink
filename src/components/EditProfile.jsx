@@ -1,10 +1,17 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { isValidSpotifyUrl } from '../lib/spotify';
 import { supabase } from '../supabaseClient';
 import ConfirmDialog from './ConfirmDialog';
 import ImageCropModal from './ImageCropModal';
+import SavedConfirmation from './SavedConfirmation';
+import useSavedConfirmation from './useSavedConfirmation';
 
 const USERNAME_COOLDOWN_DAYS = 30;
+
+// How long the confirmation toast stays visible before we hand control
+// back to the parent (which navigates away to the Dashboard). Long
+// enough to register, short enough not to feel like a stall.
+const NAVIGATE_AFTER_SAVE_MS = 900;
 
 function daysRemaining(lastChanged) {
   if (!lastChanged) return 0;
@@ -38,6 +45,14 @@ export default function EditProfile({ session, profile, onProfileUpdated }) {
   const [cropSrc, setCropSrc] = useState(null);
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
   const fileInputRef = useRef(null);
+
+  const { visible: justSaved, trigger: showSavedConfirmation, dismiss: dismissSavedConfirmation } =
+    useSavedConfirmation();
+  const navigateTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => clearTimeout(navigateTimerRef.current);
+  }, []);
 
   const usernameChanged = username !== profile?.username;
   const cooldownDaysLeft = daysRemaining(profile?.username_updated_at);
@@ -130,7 +145,15 @@ export default function EditProfile({ session, profile, onProfileUpdated }) {
         throw updateError;
       }
 
-      onProfileUpdated();
+      showSavedConfirmation();
+      // Give the toast a moment on screen before the parent navigates
+      // back to the Dashboard — onProfileUpdated fires goToDashboard()
+      // synchronously, which would otherwise unmount this component
+      // (and the toast with it) before anyone could see it.
+      clearTimeout(navigateTimerRef.current);
+      navigateTimerRef.current = setTimeout(() => {
+        onProfileUpdated();
+      }, NAVIGATE_AFTER_SAVE_MS);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -279,6 +302,12 @@ export default function EditProfile({ session, profile, onProfileUpdated }) {
         danger
         onConfirm={handleRemoveAvatar}
         onCancel={() => setShowRemoveConfirm(false)}
+      />
+
+      <SavedConfirmation
+        show={justSaved}
+        onDismiss={dismissSavedConfirmation}
+        message="Profile updated."
       />
     </>
   );
