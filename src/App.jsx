@@ -183,7 +183,7 @@ export default function App() {
     );
   }
 
-  // Public profile pages (linkie.com/rob) render standalone — no auth
+  // Public profile pages (Clink.com/rob) render standalone — no auth
   // needed, no app chrome, and works whether or not anyone is logged in.
   if (isPublicProfileRoute) {
     return <PublicProfile username={usernameFromPath} />;
@@ -194,7 +194,7 @@ export default function App() {
       <div className="min-h-screen bg-[#F9F8F3] dark:bg-slate-950 text-[#1A1A1A] dark:text-slate-100 flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-md bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
           <h1 className="text-3xl font-bold text-center text-[#2D5A27] mb-2 flex items-center justify-center gap-2">
-            Linkie 🔗
+            Clink 🔗
           </h1>
           <ResetPassword onComplete={() => setIsResettingPassword(false)} />
         </div>

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { supabase } from '../supabaseClient';
 
 // A handful of generic categories, not real brand logos — just enough
-// to sketch "here's what a Linkie page looks like" at a glance.
+// to sketch "here's what a Clink page looks like" at a glance.
 const PREVIEW_LINKS = [
   { emoji: '🎵', label: 'Music' },
   { emoji: '📸', label: 'Photos' },
@@ -11,7 +11,7 @@ const PREVIEW_LINKS = [
   { emoji: '🌐', label: 'Portfolio' },
 ];
 
-// Usernames that would collide with an app route (e.g. linkie.com/login
+// Usernames that would collide with an app route (e.g. Clink.com/login
 // would be ambiguous with the login page) or otherwise cause confusion.
 // Keep this in sync with RESERVED_PATHS in App.jsx as you add routes.
 const RESERVED_USERNAMES = [
@@ -27,7 +27,7 @@ const RESERVED_USERNAMES = [
   'about',
   'help',
   'support',
-  'linkie',
+  'Clink',
   'www',
   'null',
   'undefined',
@@ -398,7 +398,7 @@ export default function AuthForm() {
           className="mt-0.5 h-3.5 w-3.5 rounded border-slate-300 text-[#2D5A27] focus:ring-[#2D5A27]/30 cursor-pointer"
         />
         <label htmlFor="agree-to-terms" className="text-xs text-slate-500 leading-snug cursor-pointer">
-          I agree to Linkie's{' '}
+          I agree to Clink's{' '}
           <a
             href="/terms"
             target="_blank"
@@ -495,7 +495,7 @@ export default function AuthForm() {
         <div className="md:w-[58%] bg-[#EAF3E5] px-8 py-14 sm:px-16 md:px-20 md:py-0 flex items-center relative overflow-hidden">
           <div className="max-w-xl mx-auto">
             <span className="inline-block text-xs font-semibold tracking-widest uppercase text-[#2D5A27]/70 mb-5">
-              linkie.com/yourname
+              Clink.com/yourname
             </span>
             <h1 className="text-4xl sm:text-5xl font-bold text-[#1A1A1A] leading-tight mb-5">
               Every place people can find you.
@@ -504,11 +504,11 @@ export default function AuthForm() {
             </h1>
             <p className="text-slate-600 text-base sm:text-lg leading-relaxed mb-10">
               Add your music, your shop, your latest video — whatever you
-              want someone to see first. Linkie keeps it all on one page,
+              want someone to see first. Clink keeps it all on one page,
               yours to arrange.
             </p>
 
-            {/* Signature element: a mini preview of a Linkie page */}
+            {/* Signature element: a mini preview of a Clink page */}
             <div className="bg-white rounded-2xl shadow-md border border-[#2D5A27]/10 p-6 max-w-md -rotate-1">
               <div className="flex items-center gap-2 mb-4 px-1">
                 <div className="w-8 h-8 rounded-full bg-[#2D5A27]/15" />
@@ -537,7 +537,7 @@ export default function AuthForm() {
         <div className="flex-1 flex items-center justify-center px-6 py-10 sm:px-10">
           <div className="w-full max-w-sm">
             <h1 className="text-2xl font-bold text-center text-[#2D5A27] mb-1 flex items-center justify-center gap-1.5">
-              Linkie 🔗
+              Clink 🔗
             </h1>
             <h2 className="text-lg font-semibold text-center mb-4 text-slate-600">
               {headerText}
@@ -562,7 +562,7 @@ export default function AuthForm() {
     <div className="min-h-screen bg-[#F9F8F3] flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
         <h1 className="text-3xl font-bold text-center text-[#2D5A27] mb-1 flex items-center justify-center gap-2">
-          Linkie 🔗
+          Clink 🔗
         </h1>
         <h2 className="text-lg font-semibold text-center mb-4 text-slate-600">
           {headerText}

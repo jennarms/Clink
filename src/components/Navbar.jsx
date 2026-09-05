@@ -43,7 +43,7 @@ export default function Navbar({ profile, onAccountSettings, onLogoClick }) {
               onClick={onLogoClick}
               className="font-bold text-[#2D5A27] dark:text-[#4CAF50] text-lg sm:text-xl cursor-pointer rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D5A27] dark:focus-visible:ring-[#4CAF50] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
             >
-              Linkie 🔗
+              Clink 🔗
             </button>
 
             {/* Desktop nav */}

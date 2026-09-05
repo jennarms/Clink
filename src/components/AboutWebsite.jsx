@@ -55,11 +55,11 @@ export function TermsOfService({ onBack }) {
 
       <div className="space-y-4 max-h-[420px] overflow-y-auto pr-1">
         <Section heading="1. Accepting these terms">
-          <p>By creating an account or using Linkie, you agree to these Terms of Service. If you don't agree, please don't use the app.</p>
+          <p>By creating an account or using Clink, you agree to these Terms of Service. If you don't agree, please don't use the app.</p>
         </Section>
 
-        <Section heading="2. What Linkie does">
-          <p>Linkie is a link-in-bio tool. It lets you build a single page that links out to your other profiles, sites, and content, and share that page with your audience.</p>
+        <Section heading="2. What Clink does">
+          <p>Clink is a link-in-bio tool. It lets you build a single page that links out to your other profiles, sites, and content, and share that page with your audience.</p>
         </Section>
 
         <Section heading="3. Your account">
@@ -67,15 +67,15 @@ export function TermsOfService({ onBack }) {
         </Section>
 
         <Section heading="4. Your content">
-          <p>You keep ownership of the links, text, and images you add to your page. By posting them, you give Linkie permission to display and store that content so your page works as intended.</p>
+          <p>You keep ownership of the links, text, and images you add to your page. By posting them, you give Clink permission to display and store that content so your page works as intended.</p>
         </Section>
 
         <Section heading="5. Acceptable use">
-          <p>Don't use Linkie to share illegal content, malware, or links that impersonate someone else, and don't attempt to disrupt or reverse-engineer the service.</p>
+          <p>Don't use Clink to share illegal content, malware, or links that impersonate someone else, and don't attempt to disrupt or reverse-engineer the service.</p>
         </Section>
 
         <Section heading="6. Availability">
-          <p>We aim to keep Linkie up and running, but we don't guarantee uninterrupted access. Features may change as the app improves.</p>
+          <p>We aim to keep Clink up and running, but we don't guarantee uninterrupted access. Features may change as the app improves.</p>
         </Section>
 
         <Section heading="7. Ending your account">
@@ -83,7 +83,7 @@ export function TermsOfService({ onBack }) {
         </Section>
 
         <Section heading="8. Changes to these terms">
-          <p>We may update these terms as Linkie evolves. Continued use after an update means you accept the revised terms.</p>
+          <p>We may update these terms as Clink evolves. Continued use after an update means you accept the revised terms.</p>
         </Section>
 
         <Section heading="9. Contact">
@@ -102,11 +102,11 @@ export function PrivacyPolicy({ onBack }) {
 
       <div className="space-y-4 max-h-[420px] overflow-y-auto pr-1">
         <Section heading="1. What we collect">
-          <p>Your account details (like name and email), the links and content you add to your page, and basic usage data such as page views on your Linkie link.</p>
+          <p>Your account details (like name and email), the links and content you add to your page, and basic usage data such as page views on your Clink link.</p>
         </Section>
 
         <Section heading="2. How we use it">
-          <p>To run and improve Linkie, show you visit stats for your own page, keep your account secure, and get in touch about important changes.</p>
+          <p>To run and improve Clink, show you visit stats for your own page, keep your account secure, and get in touch about important changes.</p>
         </Section>
 
         <Section heading="3. What we don't do">
@@ -114,7 +114,7 @@ export function PrivacyPolicy({ onBack }) {
         </Section>
 
         <Section heading="4. Cookies">
-          <p>Linkie uses minimal cookies to keep you signed in and remember preferences like dark mode. We don't use tracking cookies for advertising.</p>
+          <p>Clink uses minimal cookies to keep you signed in and remember preferences like dark mode. We don't use tracking cookies for advertising.</p>
         </Section>
 
         <Section heading="5. Data storage">
@@ -126,7 +126,7 @@ export function PrivacyPolicy({ onBack }) {
         </Section>
 
         <Section heading="7. Children's privacy">
-          <p>Linkie isn't directed at children under 13, and we don't knowingly collect data from them.</p>
+          <p>Clink isn't directed at children under 13, and we don't knowingly collect data from them.</p>
         </Section>
 
         <Section heading="8. Changes to this policy">
@@ -143,7 +143,7 @@ function ContactSupport({ onBack }) {
       <Header title="Contact Support" onBack={onBack} />
 
       <p className="text-sm text-slate-600 dark:text-slate-300 text-center px-2 pt-2">
-        Something broken, confusing, or missing? Send a message and the Linkie team
+        Something broken, confusing, or missing? Send a message and the Clink team
         will get back to you.
       </p>
 
@@ -172,12 +172,12 @@ export default function AboutWebsite({ onComplete }) {
   return (
     <div className="space-y-4">
       <div className="text-center pt-2 pb-1">
-        <h2 className="text-xl font-bold text-slate-800 dark:text-white">About Linkie</h2>
+        <h2 className="text-xl font-bold text-slate-800 dark:text-white">About Clink</h2>
         <p className="text-xs text-slate-500 mt-1">Version 1.0.0</p>
       </div>
 
       <div className="space-y-3 text-sm text-slate-600 dark:text-slate-300">
-        <p>Linkie is a simple link-in-bio tool that lets you share all your links from one page.</p>
+        <p>Clink is a simple link-in-bio tool that lets you share all your links from one page.</p>
 
         <div className="rounded-xl border border-slate-200 dark:border-slate-700 divide-y divide-slate-100 dark:divide-slate-700 overflow-hidden">
 

@@ -127,7 +127,7 @@ export default function PagePreviewCard({ profile, links }) {
         )}
 
         <p className="text-[10px] sm:text-xs mt-5 sm:mt-8" style={{ color: footerColor }}>
-          Made with Linkie
+          Made with Clink
         </p>
       </div>
 

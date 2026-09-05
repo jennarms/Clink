@@ -100,13 +100,13 @@ export default function PublicProfile({ username }) {
     return (
       <div className="min-h-screen bg-[#F9F8F3] flex flex-col items-center justify-center p-4 text-center">
         <div className="bg-white rounded-2xl shadow-sm px-8 py-10 max-w-xs w-full">
-          <h1 className="text-2xl font-bold text-[#2D5A27] mb-2">Linkie</h1>
+          <h1 className="text-2xl font-bold text-[#2D5A27] mb-2">Clink</h1>
           <p className="text-slate-600 mb-4 text-sm">There is no page at /{username}.</p>
           <a
             href="/"
             className="inline-block text-sm text-[#2D5A27] hover:underline font-medium"
           >
-            Go to Linkie home
+            Go to Clink home
           </a>
         </div>
       </div>
@@ -251,11 +251,11 @@ export default function PublicProfile({ username }) {
             border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}`,
           }}
         >
-          Create your own Linkie
+          Create your own Clink
         </a>
 
         <p className="text-center text-[11px] mt-4" style={{ color: footerColor }}>
-          Made with Linkie
+          Made with Clink
         </p>
       </div>
     </div>

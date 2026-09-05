@@ -155,13 +155,13 @@ export default function ShareProfileButton({ username, profile }) {
       ctx.fillStyle = mutedColor;
       ctx.font = '500 12px system-ui, -apple-system, sans-serif';
       ctx.textBaseline = 'alphabetic';
-      ctx.fillText('Made with Linkie', CARD_W / 2, y + FOOTER_H / 2 + 4);
+      ctx.fillText('Made with Clink', CARD_W / 2, y + FOOTER_H / 2 + 4);
 
       URL.revokeObjectURL(svgUrl);
       const pngUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.href = pngUrl;
-      link.download = `linkie-${username}-qr.png`;
+      link.download = `Clink-${username}-qr.png`;
       link.click();
     };
 
