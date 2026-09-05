@@ -498,13 +498,13 @@ export default function AuthForm() {
               Clink.com/yourname
             </span>
             <h1 className="text-4xl sm:text-5xl font-bold text-[#1A1A1A] leading-tight mb-5">
-              Every place people can find you.
+              Every link you share.
               <br />
-              One link.
+              One click away.
             </h1>
             <p className="text-slate-600 text-base sm:text-lg leading-relaxed mb-10">
               Add your music, your shop, your latest video — whatever you
-              want someone to see first. Clink keeps it all on one page,
+              want someone to see first. Clink puts it all behind one click,
               yours to arrange.
             </p>
 
@@ -533,9 +533,12 @@ export default function AuthForm() {
           </div>
         </div>
 
-        {/* Right: sign-in form */}
-        <div className="flex-1 flex items-center justify-center px-6 py-10 sm:px-10">
-          <div className="w-full max-w-sm">
+        {/* Right: sign-in form — same off-white page background and
+            white, rounded-2xl, shadow-sm card treatment as the public
+            profile page, so the brand feels consistent from the moment
+            someone lands here to the page they eventually share. */}
+        <div className="flex-1 flex items-center justify-center bg-[#F9F8F3] px-6 py-10 sm:px-10">
+          <div className="w-full max-w-sm bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <h1 className="text-2xl font-bold text-center text-[#2D5A27] mb-1 flex items-center justify-center gap-1.5">
               Clink 🔗
             </h1>
