@@ -67,70 +67,6 @@ function TiktokEmbed({ url }) {
   );
 }
 
-function InstagramEmbed({ url }) {
-  const containerRef = useRef(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    loadScriptOnce('https://www.instagram.com/embed.js').then(() => {
-      if (cancelled) return;
-      // Instagram's widget doesn't expose a "render just this one"
-      // API like TikTok's — process() re-scans the whole page for
-      // any unprocessed .instagram-media blockquotes and hydrates
-      // them, which is harmless to call again if other IG embeds
-      // already exist on the page.
-      if (window.instgrm?.Embeds?.process) {
-        window.instgrm.Embeds.process();
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [url]);
-
-  return (
-    <div ref={containerRef} className="w-full flex justify-center">
-      <blockquote
-        className="instagram-media"
-        data-instgrm-permalink={url}
-        data-instgrm-version="14"
-        style={{ maxWidth: '100%', minWidth: '260px', margin: 0 }}
-      >
-        <a href={url} target="_blank" rel="noopener noreferrer">
-          View on Instagram
-        </a>
-      </blockquote>
-    </div>
-  );
-}
-
-function TwitterEmbed({ url }) {
-  const containerRef = useRef(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    loadScriptOnce('https://platform.twitter.com/widgets.js').then(() => {
-      if (cancelled) return;
-      if (window.twttr?.widgets?.load && containerRef.current) {
-        window.twttr.widgets.load(containerRef.current);
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [url]);
-
-  return (
-    <div ref={containerRef} className="w-full flex justify-center">
-      <blockquote className="twitter-tweet" data-dnt="true">
-        <a href={url} target="_blank" rel="noopener noreferrer">
-          View post on X
-        </a>
-      </blockquote>
-    </div>
-  );
-}
-
 function IframeEmbed({ src, title, height = 152 }) {
   if (!src) return null;
   return (
@@ -173,12 +109,6 @@ export default function EmbedPlayer({ url, platform, className = '' }) {
       break;
     case 'tiktok':
       content = <TiktokEmbed url={url} />;
-      break;
-    case 'instagram':
-      content = <InstagramEmbed url={url} />;
-      break;
-    case 'twitter':
-      content = <TwitterEmbed url={url} />;
       break;
     default:
       return null;

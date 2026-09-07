@@ -1,6 +1,11 @@
 // Central place for "what platform is this link, and how do I turn it
 // into something embeddable" logic. Adding a new platform later means
 // touching this file and EmbedPlayer.jsx — nowhere else.
+//
+// Instagram and X (Twitter) were deliberately left out: both rely on
+// public widget scripts that have become unreliable for third-party
+// embedding (rate limits, auth requirements, silent failures), so
+// links to those just render as normal link cards instead.
 
 const PLATFORM_MATCHERS = [
   { platform: 'spotify', test: (url) => /open\.spotify\.com/.test(url) },
@@ -8,10 +13,8 @@ const PLATFORM_MATCHERS = [
   { platform: 'apple_music', test: (url) => /music\.apple\.com/.test(url) },
   { platform: 'soundcloud', test: (url) => /soundcloud\.com/.test(url) },
   { platform: 'tiktok', test: (url) => /tiktok\.com/.test(url) },
-  { platform: 'instagram', test: (url) => /instagram\.com\/(p|reel|tv)\//.test(url) },
   { platform: 'vimeo', test: (url) => /vimeo\.com\/\d+/.test(url) },
   { platform: 'twitch', test: (url) => /(twitch\.tv|clips\.twitch\.tv)/.test(url) },
-  { platform: 'twitter', test: (url) => /(twitter\.com|x\.com)\/[^/]+\/status\//.test(url) },
 ];
 
 export function detectEmbedPlatform(url) {
