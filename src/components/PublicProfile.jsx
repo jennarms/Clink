@@ -260,6 +260,40 @@ export default function PublicProfile({ username }) {
           const boxStyle = cardStyle(accent, style, isDark);
           const iconBg = style === 'solid' ? 'rgba(255,255,255,0.2)' : accent + '1A';
 
+          // Recomputed from the saved URL rather than trusting a
+          // stored platform column, so a link keeps rendering
+          // correctly even if the matcher rules change later.
+          const embedPlatform = detectEmbedPlatform(featuredLink.url);
+          const isEmbed = featuredLink.is_embed && embedPlatform;
+
+          if (isEmbed) {
+            return (
+              <div
+                className="relative w-full rounded-2xl shadow-lg mb-5 overflow-hidden"
+                style={boxStyle}
+              >
+                <span
+                  className="absolute top-3 right-3 z-10 text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-full"
+                  style={{ background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(4px)' }}
+                >
+                  ★ Featured
+                </span>
+
+                <div className="px-5 pt-4 pb-2 text-left">
+                  <div className="text-base font-semibold">{featuredLink.title}</div>
+                  {featuredLink.description && (
+                    <div className="text-xs font-normal mt-1" style={{ opacity: 0.85 }}>
+                      {featuredLink.description}
+                    </div>
+                  )}
+                </div>
+                <div className="px-3 pb-3">
+                  <EmbedPlayer url={featuredLink.url} platform={embedPlatform} />
+                </div>
+              </div>
+            );
+          }
+
           return (
             <a
               href={featuredLink.url}
