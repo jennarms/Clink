@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { LuCheck, LuImage, LuPalette, LuPencil, LuStar, LuX } from 'react-icons/lu';
+import { LuCheck, LuImage, LuInfo, LuPalette, LuPencil, LuStar, LuX } from 'react-icons/lu';
 import { useTheme } from '../context/useTheme';
 import { detectEmbedPlatform } from '../lib/embeds';
 import { PALETTE, QUICK_ICONS, STYLES, cardStyle } from '../lib/linkStyles';
@@ -10,6 +10,19 @@ import ImageCropModal from './ImageCropModal';
 import RenderIcon from './RenderIcon';
 import SavedConfirmation from './SavedConfirmation';
 import useSavedConfirmation from './useSavedConfirmation';
+
+const PLATFORM_LABELS = {
+  spotify: 'Spotify',
+  youtube: 'YouTube',
+  apple_music: 'Apple Music',
+  soundcloud: 'SoundCloud',
+  vimeo: 'Vimeo',
+  twitch: 'Twitch',
+  tiktok: 'TikTok',
+};
+
+// Order shown in the "which platforms embed" tooltip.
+const EMBED_PLATFORM_ORDER = ['spotify', 'youtube', 'apple_music', 'soundcloud', 'vimeo', 'twitch', 'tiktok'];
 
 export default function LinkItem({
   link,
@@ -46,6 +59,9 @@ export default function LinkItem({
   // plain link card. Seeded from the saved value; only meaningful while
   // the URL still resolves to a recognized platform.
   const [embedEnabled, setEmbedEnabled] = useState(link.is_embed || false);
+
+  // Controls the "which platforms embed" info popover next to the URL field.
+  const [showEmbedInfo, setShowEmbedInfo] = useState(false);
 
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(link.image_url || null);
@@ -214,6 +230,7 @@ export default function LinkItem({
     setImagePreview(link.image_url || null);
     setImageRemoved(false);
     setEmbedEnabled(link.is_embed || false);
+    setShowEmbedInfo(false);
     setActivePanel('none');
   };
 
@@ -409,7 +426,40 @@ export default function LinkItem({
             </div>
 
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1.5">URL</div>
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">URL</div>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowEmbedInfo((prev) => !prev)}
+                    onBlur={() => setShowEmbedInfo(false)}
+                    title="Which links can show as an embedded player?"
+                    className="w-5 h-5 rounded-full flex items-center justify-center text-slate-400 dark:text-slate-500 hover:text-[#2D5A27] dark:hover:text-[#4CAF50] hover:bg-[#2D5A27]/[0.06] dark:hover:bg-[#4CAF50]/[0.1] cursor-pointer transition-colors"
+                  >
+                    <LuInfo className="w-3.5 h-3.5" />
+                  </button>
+
+                  {showEmbedInfo && (
+                    <div className="absolute right-0 top-full mt-1.5 z-10 w-64 p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg text-xs text-slate-600 dark:text-slate-300 normal-case tracking-normal font-normal">
+                      <p className="font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
+                        Links that can embed as a player
+                      </p>
+                      <p className="mb-2">
+                        Paste a link from one of these and you'll get the option to show it as a
+                        playable card instead of a plain button:
+                      </p>
+                      <ul className="grid grid-cols-2 gap-x-2 gap-y-1">
+                        {EMBED_PLATFORM_ORDER.map((key) => (
+                          <li key={key} className="flex items-center gap-1.5">
+                            <span className="w-1 h-1 rounded-full bg-slate-400 dark:bg-slate-500" />
+                            {PLATFORM_LABELS[key]}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </div>
               <input
                 type="text"
                 value={url}
