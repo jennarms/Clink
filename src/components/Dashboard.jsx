@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import AddLinkForm from './AddLinkForm';
 import BackgroundColorPicker from './BackgroundColorPicker';
-import EmbedPlayer from './EmbedPlayer';
 import LinkList from './LinkList';
 import PagePreviewCard from './PagePreviewCard';
 import ShareProfileButton from './ShareProfileButton';
@@ -327,14 +326,6 @@ export default function Dashboard({ session, profile, onEditProfile, onViewAnaly
                       </p>
                     )}
                   </div>
-
-                  {profile.embed_url && profile.embed_platform && (
-                    <EmbedPlayer
-                      url={profile.embed_url}
-                      platform={profile.embed_platform}
-                      className="mb-4"
-                    />
-                  )}
 
                   <div className="flex items-stretch gap-2">
                     <div className="flex-1">

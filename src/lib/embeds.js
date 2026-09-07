@@ -8,6 +8,10 @@ const PLATFORM_MATCHERS = [
   { platform: 'apple_music', test: (url) => /music\.apple\.com/.test(url) },
   { platform: 'soundcloud', test: (url) => /soundcloud\.com/.test(url) },
   { platform: 'tiktok', test: (url) => /tiktok\.com/.test(url) },
+  { platform: 'instagram', test: (url) => /instagram\.com\/(p|reel|tv)\//.test(url) },
+  { platform: 'vimeo', test: (url) => /vimeo\.com\/\d+/.test(url) },
+  { platform: 'twitch', test: (url) => /(twitch\.tv|clips\.twitch\.tv)/.test(url) },
+  { platform: 'twitter', test: (url) => /(twitter\.com|x\.com)\/[^/]+\/status\//.test(url) },
 ];
 
 export function detectEmbedPlatform(url) {
@@ -55,4 +59,37 @@ export function getSoundcloudEmbedSrc(url) {
   // SoundCloud's player takes the original track URL as a query param,
   // no ID extraction needed on our end.
   return `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%232D5A27&auto_play=false&show_teaser=false`;
+}
+
+export function getVimeoEmbedSrc(url) {
+  const match = url.match(/vimeo\.com\/(\d+)/);
+  if (!match) return null;
+  return `https://player.vimeo.com/video/${match[1]}`;
+}
+
+// Twitch's player requires a `parent` param naming the domain that's
+// embedding it — it refuses to render otherwise. We read the current
+// hostname at render time rather than hardcoding it, so this keeps
+// working across localhost, staging, and production without edits.
+export function getTwitchEmbedSrc(url) {
+  const parent = window.location.hostname;
+
+  const clipMatch =
+    url.match(/clips\.twitch\.tv\/([a-zA-Z0-9_-]+)/) ||
+    url.match(/twitch\.tv\/[^/]+\/clip\/([a-zA-Z0-9_-]+)/);
+  if (clipMatch) {
+    return `https://clips.twitch.tv/embed?clip=${clipMatch[1]}&parent=${parent}`;
+  }
+
+  const videoMatch = url.match(/twitch\.tv\/videos\/(\d+)/);
+  if (videoMatch) {
+    return `https://player.twitch.tv/?video=${videoMatch[1]}&parent=${parent}`;
+  }
+
+  const channelMatch = url.match(/twitch\.tv\/([a-zA-Z0-9_]+)\/?$/);
+  if (channelMatch) {
+    return `https://player.twitch.tv/?channel=${channelMatch[1]}&parent=${parent}`;
+  }
+
+  return null;
 }

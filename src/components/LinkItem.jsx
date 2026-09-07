@@ -1,9 +1,11 @@
 import { useRef, useState } from 'react';
 import { LuCheck, LuImage, LuPalette, LuPencil, LuStar, LuX } from 'react-icons/lu';
 import { useTheme } from '../context/useTheme';
+import { detectEmbedPlatform } from '../lib/embeds';
 import { PALETTE, QUICK_ICONS, STYLES, cardStyle } from '../lib/linkStyles';
 import { supabase } from '../supabaseClient';
 import ConfirmDialog from './ConfirmDialog';
+import EmbedPlayer from './EmbedPlayer';
 import ImageCropModal from './ImageCropModal';
 import RenderIcon from './RenderIcon';
 import SavedConfirmation from './SavedConfirmation';
@@ -39,6 +41,11 @@ export default function LinkItem({
   const [title, setTitle] = useState(link.title || '');
   const [url, setUrl] = useState(link.url || '');
   const [description, setDescription] = useState(link.description || '');
+
+  // Whether this link should render as an embedded player rather than a
+  // plain link card. Seeded from the saved value; only meaningful while
+  // the URL still resolves to a recognized platform.
+  const [embedEnabled, setEmbedEnabled] = useState(link.is_embed || false);
 
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(link.image_url || null);
@@ -109,7 +116,8 @@ export default function LinkItem({
     url !== (link.url || '') ||
     description !== (link.description || '') ||
     imageFile !== null ||
-    imageRemoved;
+    imageRemoved ||
+    embedEnabled !== (link.is_embed || false);
 
   const handleSaveStyle = async () => {
     const { error } = await supabase
@@ -163,9 +171,17 @@ export default function LinkItem({
       image_url = null;
     }
 
+    const finalIsEmbed = embedEnabled && !!detectEmbedPlatform(formattedUrl);
+
     const { error } = await supabase
       .from('links')
-      .update({ title, url: formattedUrl, description: description || null, image_url })
+      .update({
+        title,
+        url: formattedUrl,
+        description: description || null,
+        image_url,
+        is_embed: finalIsEmbed,
+      })
       .eq('id', link.id);
 
     setUploading(false);
@@ -175,7 +191,13 @@ export default function LinkItem({
       return;
     }
     if (onUpdateLink) {
-      onUpdateLink(link.id, { title, url: formattedUrl, description: description || null, image_url });
+      onUpdateLink(link.id, {
+        title,
+        url: formattedUrl,
+        description: description || null,
+        image_url,
+        is_embed: finalIsEmbed,
+      });
     }
     setUrl(formattedUrl);
     setImageFile(null);
@@ -191,6 +213,7 @@ export default function LinkItem({
     setImageFile(null);
     setImagePreview(link.image_url || null);
     setImageRemoved(false);
+    setEmbedEnabled(link.is_embed || false);
     setActivePanel('none');
   };
 
@@ -203,6 +226,16 @@ export default function LinkItem({
 
   const cardBoxStyle = cardStyle(accent, style, isDark);
   const isEditingAnything = activePanel !== 'none';
+
+  // Detected from the (possibly unsaved) URL field, so the checkbox in
+  // the edit panel appears/disappears live as the person edits the URL.
+  const detectedPlatform = url.trim() ? detectEmbedPlatform(url.trim()) : null;
+
+  // Detected from the saved URL, so the collapsed card renders the
+  // player based on what's actually persisted, not the draft.
+  const savedPlatform = detectEmbedPlatform(link.url);
+  const showEmbed = !isEditingAnything && link.is_embed && savedPlatform;
+
   const borderColor = isEditingAnything
     ? accent
     : isDragOver
@@ -232,7 +265,7 @@ export default function LinkItem({
     >
       <div
         className={`flex items-center justify-between p-3.5 group transition-[border-radius] duration-200 ${
-          activePanel === 'none' ? 'rounded-2xl' : 'rounded-t-2xl'
+          activePanel === 'none' && !showEmbed ? 'rounded-2xl' : 'rounded-t-2xl'
         }`}
         style={cardBoxStyle}
       >
@@ -344,6 +377,18 @@ export default function LinkItem({
         </div>
       </div>
 
+      {/* Inline embedded player — shown on the collapsed card only, right
+          below the header, when this link is saved with is_embed on and
+          its URL still resolves to a supported platform. */}
+      {showEmbed && (
+        <div
+          className={`p-3 pt-0 ${activePanel === 'none' ? 'rounded-b-2xl' : ''}`}
+          style={cardBoxStyle}
+        >
+          <EmbedPlayer url={link.url} platform={savedPlatform} />
+        </div>
+      )}
+
       {/* Edit panel */}
       <div
         className={`grid transition-[grid-template-rows] duration-300 ease-out ${
@@ -373,6 +418,20 @@ export default function LinkItem({
                 className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-[#1A1A1A] dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 dark:focus:ring-[#4CAF50]/30 focus:border-[#2D5A27] dark:focus:border-[#4CAF50]"
               />
             </div>
+
+            {detectedPlatform && (
+              <label className="flex items-start gap-2.5 p-3 rounded-lg border border-[#2D5A27]/25 dark:border-[#4CAF50]/25 bg-[#2D5A27]/[0.04] dark:bg-[#4CAF50]/[0.08] cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={embedEnabled}
+                  onChange={(e) => setEmbedEnabled(e.target.checked)}
+                  className="mt-0.5 accent-[#2D5A27] dark:accent-[#4CAF50] cursor-pointer"
+                />
+                <span className="text-xs text-slate-600 dark:text-slate-300">
+                  Show this as a player instead of a plain link.
+                </span>
+              </label>
+            )}
 
             <div>
               <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1.5">Description</div>

@@ -1,10 +1,20 @@
 import { useState } from 'react';
 import { LuCheck, LuImage, LuPalette, LuX } from 'react-icons/lu';
 import { useTheme } from '../context/useTheme';
+import { detectEmbedPlatform } from '../lib/embeds';
 import { PALETTE, QUICK_ICONS, STYLES, cardStyle } from '../lib/linkStyles';
 import { supabase } from '../supabaseClient';
+import EmbedPlayer from './EmbedPlayer';
 import ImageCropModal from './ImageCropModal';
 import RenderIcon from './RenderIcon';
+
+const PLATFORM_LABELS = {
+  spotify: 'Spotify',
+  youtube: 'YouTube',
+  apple_music: 'Apple Music',
+  soundcloud: 'SoundCloud',
+  tiktok: 'TikTok',
+};
 
 export default function AddLinkForm({ userId, onLinkAdded }) {
   const [open, setOpen] = useState(false);
@@ -20,6 +30,12 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
   const [style, setStyle] = useState('solid');
   const [icon, setIcon] = useState('link');
 
+  // Whether a recognized embeddable link should actually render as a
+  // player instead of a plain link card. Defaults to true so the
+  // common case ("I pasted a YouTube link, embed it") needs no extra
+  // click — people can opt out instead of opting in.
+  const [wantEmbed, setWantEmbed] = useState(true);
+
   // Raw picked file's object URL, fed into the crop modal. Null when the
   // modal is closed.
   const [cropSrc, setCropSrc] = useState(null);
@@ -29,6 +45,10 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
   // while the form is open.
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+
+  // Detected live as the person types/pastes the URL, so they see the
+  // embed option appear immediately when it's relevant.
+  const detectedPlatform = url.trim() ? detectEmbedPlatform(url.trim()) : null;
 
   const resetForm = () => {
     setTitle('');
@@ -40,6 +60,7 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
     setAccent('#2D5A27');
     setStyle('solid');
     setIcon('link');
+    setWantEmbed(true);
     setOpen(false);
   };
 
@@ -108,6 +129,9 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
       image_url = publicUrlData.publicUrl;
     }
 
+    const embedPlatform = detectEmbedPlatform(formattedUrl);
+    const is_embed = !!(embedPlatform && wantEmbed);
+
     const { error } = await supabase
       .from('links')
       .insert([{
@@ -119,6 +143,7 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
         accent_color: accent,
         style,
         icon,
+        is_embed,
       }]);
 
     setUploading(false);
@@ -147,6 +172,7 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
   }
 
   const previewBoxStyle = cardStyle(accent, style, isDark);
+  const showEmbedPreview = wantEmbed && detectedPlatform;
 
   return (
     <form
@@ -184,6 +210,22 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
         required
         className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-[#1A1A1A] dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 dark:focus:ring-[#4CAF50]/30 focus:border-[#2D5A27] dark:focus:border-[#4CAF50]"
       />
+
+      {detectedPlatform && (
+        <label className="flex items-start gap-2.5 p-3 rounded-lg border border-[#2D5A27]/25 dark:border-[#4CAF50]/25 bg-[#2D5A27]/[0.04] dark:bg-[#4CAF50]/[0.08] cursor-pointer">
+          <input
+            type="checkbox"
+            checked={wantEmbed}
+            onChange={(e) => setWantEmbed(e.target.checked)}
+            className="mt-0.5 accent-[#2D5A27] dark:accent-[#4CAF50] cursor-pointer"
+          />
+          <span className="text-xs text-slate-600 dark:text-slate-300">
+            Recognized as {PLATFORM_LABELS[detectedPlatform]} — show this as a player in your
+            link list instead of a plain button.
+          </span>
+        </label>
+      )}
+
       <textarea
         placeholder="Description (optional)"
         value={description}
@@ -192,158 +234,164 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
         className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-[#1A1A1A] dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#2D5A27]/20 dark:focus:ring-[#4CAF50]/30 focus:border-[#2D5A27] dark:focus:border-[#4CAF50] resize-none"
       />
 
-      {/* Image picker */}
-      <div>
-        <label className="flex items-center justify-center gap-2 w-full py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition">
-          <LuImage className="w-4 h-4" />
-          {imageFile ? 'Change image' : 'Add Image as Icon (optional)'}
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="hidden"
-          />
-        </label>
-
-        {imagePreview && (
-          <div className="relative mt-2 rounded-xl overflow-hidden border border-slate-300 dark:border-slate-600">
-            <img
-              src={imagePreview}
-              alt="Preview"
-              className="w-full h-40 object-cover"
+      {/* Image picker — not relevant once this link is rendering as an
+          embedded player, since the player itself is the visual. */}
+      {!showEmbedPreview && (
+        <div>
+          <label className="flex items-center justify-center gap-2 w-full py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition">
+            <LuImage className="w-4 h-4" />
+            {imageFile ? 'Change image' : 'Add Image as Icon (optional)'}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="hidden"
             />
-            <button
-              type="button"
-              onClick={() => { setImageFile(null); setImagePreview(null); }}
-              className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 hover:bg-black/75 text-white flex items-center justify-center cursor-pointer transition"
-              title="Remove image"
-            >
-              <LuX className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        )}
-      </div>
+          </label>
 
-      {/* Design toggle */}
-      <div>
-        <button
-          type="button"
-          onClick={() => setShowDesign((prev) => !prev)}
-          className="flex items-center justify-center gap-2 w-full py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition"
-        >
-          <LuPalette className="w-4 h-4" />
-          {showDesign ? 'Hide design options' : 'Customize Icon and Design (optional)'}
-        </button>
+          {imagePreview && (
+            <div className="relative mt-2 rounded-xl overflow-hidden border border-slate-300 dark:border-slate-600">
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="w-full h-40 object-cover"
+              />
+              <button
+                type="button"
+                onClick={() => { setImageFile(null); setImagePreview(null); }}
+                className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 hover:bg-black/75 text-white flex items-center justify-center cursor-pointer transition"
+                title="Remove image"
+              >
+                <LuX className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
-        <div
-          className={`grid transition-[grid-template-rows] duration-300 ease-out ${
-            showDesign ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-          }`}
-        >
-          <div className="overflow-hidden">
-            <div className="mt-2 p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 space-y-4">
-              <div>
-                <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">Color</div>
-                <div className="flex flex-wrap items-center gap-2">
-                  {PALETTE.map((c) => {
-                    const isActive = accent === c.value;
-                    return (
-                      <button
-                        key={c.value}
-                        type="button"
-                        onClick={() => setAccent(c.value)}
-                        title={c.name}
-                        className="relative w-7 h-7 rounded-full cursor-pointer transition-transform hover:scale-110 flex items-center justify-center"
-                        style={{
-                          background: c.value,
-                          boxShadow: isActive
-                            ? `0 0 0 2px ${isDark ? '#1e293b' : '#fff'}, 0 0 0 3.5px ${c.value}`
-                            : 'none',
-                        }}
-                      >
-                        {isActive && (
-                          <LuCheck className="w-3.5 h-3.5 text-white drop-shadow-sm" strokeWidth={3} />
-                        )}
-                      </button>
-                    );
-                  })}
-                  <label
-                    className="relative w-7 h-7 rounded-full cursor-pointer border-[1.5px] border-dashed border-slate-400 dark:border-slate-500 flex items-center justify-center text-slate-400 dark:text-slate-500 hover:border-slate-500 dark:hover:border-slate-400 hover:text-slate-500 dark:hover:text-slate-400 transition-colors"
-                    title="Custom color"
-                  >
-                    <span className="text-xs leading-none">+</span>
-                    <input
-                      type="color"
-                      value={accent}
-                      onChange={(e) => setAccent(e.target.value)}
-                      className="absolute inset-0 opacity-0 cursor-pointer"
-                    />
-                  </label>
-                </div>
-              </div>
+      {/* Design toggle — also hidden for embeds, since the player fills
+          the whole card rather than using the icon/color/style system. */}
+      {!showEmbedPreview && (
+        <div>
+          <button
+            type="button"
+            onClick={() => setShowDesign((prev) => !prev)}
+            className="flex items-center justify-center gap-2 w-full py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition"
+          >
+            <LuPalette className="w-4 h-4" />
+            {showDesign ? 'Hide design options' : 'Customize Icon and Design (optional)'}
+          </button>
 
-              <div>
-                <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">Style</div>
-                <div className="flex gap-2">
-                  {STYLES.map((st) => {
-                    const active = style === st;
-                    const stBoxStyle = cardStyle(accent, st, isDark);
-                    return (
-                      <button
-                        key={st}
-                        type="button"
-                        onClick={() => setStyle(st)}
-                        className={`flex-1 flex flex-col items-center gap-1.5 py-2 rounded-lg cursor-pointer transition-all border ${
-                          active
-                            ? 'border-[#2D5A27] dark:border-[#4CAF50] bg-white dark:bg-slate-800 shadow-sm'
-                            : 'border-transparent hover:bg-slate-50 dark:hover:bg-slate-800/60'
-                        }`}
-                      >
-                        <span
-                          className="w-full h-7 rounded-md flex items-center justify-center text-[11px] font-semibold"
-                          style={stBoxStyle}
+          <div
+            className={`grid transition-[grid-template-rows] duration-300 ease-out ${
+              showDesign ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+            }`}
+          >
+            <div className="overflow-hidden">
+              <div className="mt-2 p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 space-y-4">
+                <div>
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">Color</div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {PALETTE.map((c) => {
+                      const isActive = accent === c.value;
+                      return (
+                        <button
+                          key={c.value}
+                          type="button"
+                          onClick={() => setAccent(c.value)}
+                          title={c.name}
+                          className="relative w-7 h-7 rounded-full cursor-pointer transition-transform hover:scale-110 flex items-center justify-center"
+                          style={{
+                            background: c.value,
+                            boxShadow: isActive
+                              ? `0 0 0 2px ${isDark ? '#1e293b' : '#fff'}, 0 0 0 3.5px ${c.value}`
+                              : 'none',
+                          }}
                         >
-                          Aa
-                        </span>
-                        <span className={`text-[11px] font-medium capitalize ${active ? 'text-[#2D5A27] dark:text-[#4CAF50]' : 'text-slate-500 dark:text-slate-400'}`}>
-                          {st}
-                        </span>
-                      </button>
-                    );
-                  })}
+                          {isActive && (
+                            <LuCheck className="w-3.5 h-3.5 text-white drop-shadow-sm" strokeWidth={3} />
+                          )}
+                        </button>
+                      );
+                    })}
+                    <label
+                      className="relative w-7 h-7 rounded-full cursor-pointer border-[1.5px] border-dashed border-slate-400 dark:border-slate-500 flex items-center justify-center text-slate-400 dark:text-slate-500 hover:border-slate-500 dark:hover:border-slate-400 hover:text-slate-500 dark:hover:text-slate-400 transition-colors"
+                      title="Custom color"
+                    >
+                      <span className="text-xs leading-none">+</span>
+                      <input
+                        type="color"
+                        value={accent}
+                        onChange={(e) => setAccent(e.target.value)}
+                        className="absolute inset-0 opacity-0 cursor-pointer"
+                      />
+                    </label>
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">Icon</div>
-                <div className="text-[11px] text-slate-400 dark:text-slate-500 mb-1.5 -mt-1">
-                  Used only if you don't add an image above.
+                <div>
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">Style</div>
+                  <div className="flex gap-2">
+                    {STYLES.map((st) => {
+                      const active = style === st;
+                      const stBoxStyle = cardStyle(accent, st, isDark);
+                      return (
+                        <button
+                          key={st}
+                          type="button"
+                          onClick={() => setStyle(st)}
+                          className={`flex-1 flex flex-col items-center gap-1.5 py-2 rounded-lg cursor-pointer transition-all border ${
+                            active
+                              ? 'border-[#2D5A27] dark:border-[#4CAF50] bg-white dark:bg-slate-800 shadow-sm'
+                              : 'border-transparent hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                          }`}
+                        >
+                          <span
+                            className="w-full h-7 rounded-md flex items-center justify-center text-[11px] font-semibold"
+                            style={stBoxStyle}
+                          >
+                            Aa
+                          </span>
+                          <span className={`text-[11px] font-medium capitalize ${active ? 'text-[#2D5A27] dark:text-[#4CAF50]' : 'text-slate-500 dark:text-slate-400'}`}>
+                            {st}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {QUICK_ICONS.map((item) => {
-                    const active = icon === item.id;
-                    return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        title={item.label}
-                        onClick={() => setIcon(item.id)}
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition-colors border ${
-                          active
-                            ? 'border-[#2D5A27] dark:border-[#4CAF50] bg-white dark:bg-slate-800 shadow-sm text-[#2D5A27] dark:text-[#4CAF50]'
-                            : 'border-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60'
-                        }`}
-                      >
-                        <RenderIcon iconKey={item.id} className="w-4 h-4" />
-                      </button>
-                    );
-                  })}
+
+                <div>
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">Icon</div>
+                  <div className="text-[11px] text-slate-400 dark:text-slate-500 mb-1.5 -mt-1">
+                    Used only if you don't add an image above.
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {QUICK_ICONS.map((item) => {
+                      const active = icon === item.id;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          title={item.label}
+                          onClick={() => setIcon(item.id)}
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition-colors border ${
+                            active
+                              ? 'border-[#2D5A27] dark:border-[#4CAF50] bg-white dark:bg-slate-800 shadow-sm text-[#2D5A27] dark:text-[#4CAF50]'
+                              : 'border-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                          }`}
+                        >
+                          <RenderIcon iconKey={item.id} className="w-4 h-4" />
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Live preview */}
       {title && (
@@ -351,24 +399,33 @@ export default function AddLinkForm({ userId, onLinkAdded }) {
           <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-1.5">
             Preview
           </div>
-          <div className="flex items-center gap-3 p-3 rounded-xl" style={previewBoxStyle}>
-            <span
-              className="w-11 h-11 shrink-0 rounded-xl flex items-center justify-center text-base leading-none overflow-hidden"
-              style={{ background: style === 'solid' ? 'rgba(255,255,255,0.2)' : `${accent}1A` }}
-            >
-              {imagePreview ? (
-                <img src={imagePreview} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <RenderIcon iconKey={icon} className="w-5 h-5" />
-              )}
-            </span>
-            <div className="min-w-0">
-              <div className="font-semibold text-sm truncate">{title}</div>
-              <div className="text-xs truncate mt-0.5" style={{ opacity: 0.85 }}>
-                {description || url || 'yourlink.com'}
+          {showEmbedPreview ? (
+            <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+              <div className="text-sm font-semibold text-[#1A1A1A] dark:text-slate-100 mb-2 truncate">
+                {title}
+              </div>
+              <EmbedPlayer url={url} platform={detectedPlatform} />
+            </div>
+          ) : (
+            <div className="flex items-center gap-3 p-3 rounded-xl" style={previewBoxStyle}>
+              <span
+                className="w-11 h-11 shrink-0 rounded-xl flex items-center justify-center text-base leading-none overflow-hidden"
+                style={{ background: style === 'solid' ? 'rgba(255,255,255,0.2)' : `${accent}1A` }}
+              >
+                {imagePreview ? (
+                  <img src={imagePreview} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <RenderIcon iconKey={icon} className="w-5 h-5" />
+                )}
+              </span>
+              <div className="min-w-0">
+                <div className="font-semibold text-sm truncate">{title}</div>
+                <div className="text-xs truncate mt-0.5" style={{ opacity: 0.85 }}>
+                  {description || url || 'yourlink.com'}
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 

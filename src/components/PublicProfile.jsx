@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { detectEmbedPlatform } from '../lib/embeds';
 import { cardStyle, luminance } from '../lib/linkStyles';
 import { supabase } from '../supabaseClient';
 import EmbedPlayer from './EmbedPlayer';
@@ -52,7 +53,7 @@ export default function PublicProfile({ username }) {
     async function loadProfile() {
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('id, username, display_name, bio, avatar_url, theme_color, background_type, background_value, embed_url, embed_platform, view_count, show_view_count')
+        .select('id, username, display_name, bio, avatar_url, theme_color, background_type, background_value, view_count, show_view_count')
         .eq('username', username)
         .single();
 
@@ -67,7 +68,7 @@ export default function PublicProfile({ username }) {
 
       const { data: linksData, error: linksError } = await supabase
         .from('links')
-        .select('id, title, url, description, icon, accent_color, style, image_url, is_featured')
+        .select('id, title, url, description, icon, accent_color, style, image_url, is_featured, is_embed')
         .eq('user_id', profileData.id)
         .eq('is_active', true)
         .order('sort_order', { ascending: true, nullsFirst: false })
@@ -253,10 +254,6 @@ export default function PublicProfile({ username }) {
           )}
         </div>
 
-        {profile.embed_url && profile.embed_platform && (
-          <EmbedPlayer url={profile.embed_url} platform={profile.embed_platform} className="mb-6" />
-        )}
-
         {featuredLink && (() => {
           const accent = featuredLink.accent_color || '#2D5A27';
           const style = featuredLink.style || 'solid';
@@ -315,6 +312,34 @@ export default function PublicProfile({ username }) {
               const style = link.style || 'solid';
               const boxStyle = cardStyle(accent, style, isDark);
               const iconBg = style === 'solid' ? 'rgba(255,255,255,0.2)' : accent + '1A';
+
+              // Recomputed from the saved URL rather than trusting a
+              // stored platform column, so a link keeps rendering
+              // correctly even if the matcher rules change later.
+              const embedPlatform = detectEmbedPlatform(link.url);
+              const isEmbed = link.is_embed && embedPlatform;
+
+              if (isEmbed) {
+                return (
+                  <div
+                    key={link.id}
+                    className="w-full rounded-xl overflow-hidden shadow-sm"
+                    style={boxStyle}
+                  >
+                    <div className="px-4 pt-3 pb-2">
+                      <div className="font-medium text-sm truncate">{link.title}</div>
+                      {link.description && (
+                        <div className="text-xs truncate mt-0.5" style={{ opacity: 0.85 }}>
+                          {link.description}
+                        </div>
+                      )}
+                    </div>
+                    <div className="px-2 pb-2">
+                      <EmbedPlayer url={link.url} platform={embedPlatform} />
+                    </div>
+                  </div>
+                );
+              }
 
               return (
                 <a
