@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { cardStyle, luminance } from '../lib/linkStyles';
 import { supabase } from '../supabaseClient';
 import RenderIcon from './RenderIcon';
@@ -41,13 +41,18 @@ export default function PublicProfile({ username }) {
   const [links, setLinks] = useState([]);
   const [revealed, setRevealed] = useState(false);
 
+  // Guards against double-firing the view increment — React 18 Strict
+  // Mode runs effects twice in dev, and this is the kind of side effect
+  // (a write) that shouldn't run twice just because of that.
+  const hasTrackedView = useRef(false);
+
   useEffect(() => {
     let isMounted = true;
 
     async function loadProfile() {
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('id, username, display_name, bio, avatar_url, theme_color, background_type, background_value, spotify_url')
+        .select('id, username, display_name, bio, avatar_url, theme_color, background_type, background_value, spotify_url, view_count, show_view_count')
         .eq('username', username)
         .single();
 
@@ -91,6 +96,28 @@ export default function PublicProfile({ username }) {
       return () => cancelAnimationFrame(id);
     }
   }, [status]);
+
+  // Fire-and-forget view tracking. This intentionally doesn't block or
+  // affect rendering in any way — if it fails (offline, RPC missing,
+  // whatever), the visitor should never notice.
+  useEffect(() => {
+    if (status === 'found' && !hasTrackedView.current) {
+      hasTrackedView.current = true;
+      supabase.rpc('increment_profile_view', { p_username: username }).then(
+        () => {},
+        () => {}
+      );
+    }
+  }, [status, username]);
+
+  const handleLinkClick = (linkId) => {
+    // Also fire-and-forget — the <a> tag's default navigation isn't
+    // blocked waiting on this.
+    supabase.rpc('increment_link_click', { p_link_id: linkId }).then(
+      () => {},
+      () => {}
+    );
+  };
 
   if (status === 'loading') {
     return <ProfileSkeleton />;
@@ -186,6 +213,11 @@ export default function PublicProfile({ username }) {
             {displayName}
           </h1>
           <p className="text-sm" style={{ color: handleColor }}>@{profile.username}</p>
+          {profile.show_view_count && (
+            <p className="text-xs mt-1" style={{ color: handleColor }}>
+              {(profile.view_count ?? 0).toLocaleString()} {profile.view_count === 1 ? 'view' : 'views'}
+            </p>
+          )}
           {profile.bio && (
             <p className="text-sm mt-2 max-w-xs" style={{ color: bioColor }}>{profile.bio}</p>
           )}
@@ -211,6 +243,7 @@ export default function PublicProfile({ username }) {
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => handleLinkClick(link.id)}
                   className="flex items-center gap-3 w-full py-3 px-4 rounded-xl font-medium text-sm shadow-sm transition-transform hover:-translate-y-0.5"
                   style={boxStyle}
                 >

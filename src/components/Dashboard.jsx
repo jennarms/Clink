@@ -9,9 +9,9 @@ import SpotifyEmbed from './SpotifyEmbed';
 
 const LONG_PRESS_MS = 450;
 
-// Small reusable label used above each functional group (Profile,
-// Appearance, Links) so the dashboard reads as distinct sections
-// instead of one undifferentiated stack.
+// Small reusable label used above each functional group (Analytics,
+// Profile, Appearance, Links) so the dashboard reads as distinct
+// sections instead of one undifferentiated stack.
 function SectionLabel({ children }) {
   return (
     <p className="text-xs font-semibold uppercase tracking-wide text-[#2D5A27]/60 dark:text-[#4CAF50]/60 mb-2 px-0.5">
@@ -20,10 +20,34 @@ function SectionLabel({ children }) {
   );
 }
 
-export default function Dashboard({ session, profile, onEditProfile }) {
+function Toggle({ checked, onChange, disabled }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      disabled={disabled}
+      onClick={() => onChange(!checked)}
+      className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-default ${
+        checked ? 'bg-[#2D5A27] dark:bg-[#4CAF50]' : 'bg-slate-300 dark:bg-slate-600'
+      }`}
+    >
+      <span
+        className={`inline-block h-4.5 w-4.5 transform rounded-full bg-white shadow transition-transform ${
+          checked ? 'translate-x-6' : 'translate-x-1'
+        }`}
+      />
+    </button>
+  );
+}
+
+export default function Dashboard({ session, profile, onEditProfile, onViewAnalytics }) {
   const [links, setLinks] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0);
   const [showPreview, setShowPreview] = useState(false);
+  const [viewCount, setViewCount] = useState(profile?.view_count ?? 0);
+  const [showViewCount, setShowViewCount] = useState(profile?.show_view_count ?? false);
+  const [togglingViewCount, setTogglingViewCount] = useState(false);
 
   const profileBgType = profile?.background_type || 'color';
   const profileBgValue = profile?.background_value || profile?.theme_color;
@@ -67,6 +91,49 @@ export default function Dashboard({ session, profile, onEditProfile }) {
     loadLinks();
     return () => { isMounted = false; };
   }, [userId, refreshKey]);
+
+  // Pulled separately from `profile` (rather than trusting the prop)
+  // since view_count changes constantly from public-page traffic that
+  // has nothing to do with the parent re-rendering. refreshKey ties
+  // this to the same "something changed, go get fresh numbers" trigger
+  // the links list already uses.
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadViewCount() {
+      if (!userId) return;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('view_count, show_view_count')
+        .eq('id', userId)
+        .single();
+
+      if (isMounted && !error && data) {
+        setViewCount(data.view_count ?? 0);
+        setShowViewCount(data.show_view_count ?? false);
+      }
+    }
+
+    loadViewCount();
+    return () => { isMounted = false; };
+  }, [userId, refreshKey]);
+
+  const handleToggleShowViewCount = async (nextValue) => {
+    setShowViewCount(nextValue); // optimistic
+    setTogglingViewCount(true);
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ show_view_count: nextValue })
+      .eq('id', userId);
+
+    setTogglingViewCount(false);
+
+    if (error) {
+      setShowViewCount(!nextValue); // revert
+      alert(error.message);
+    }
+  };
 
   const handleDeleteLink = async (id) => {
     const { error } = await supabase.from('links').delete().eq('id', id);
@@ -123,6 +190,8 @@ export default function Dashboard({ session, profile, onEditProfile }) {
     background_value: previewBackground.value,
   };
 
+  const totalClicks = links.reduce((sum, l) => sum + (l.click_count || 0), 0);
+
   return (
     <div>
       {/* Dashboard header — grounds the screen with a title, live link
@@ -160,6 +229,50 @@ export default function Dashboard({ session, profile, onEditProfile }) {
                 <PagePreviewCard profile={previewProfile} links={links} />
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {profile?.username && (
+        <div className="mb-6">
+          <SectionLabel>Analytics</SectionLabel>
+          <div className="p-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 shadow-sm flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-4">
+              <div>
+                <p className="text-lg font-semibold text-slate-800 dark:text-slate-100 leading-tight">
+                  {viewCount}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Views</p>
+              </div>
+              <div className="h-8 w-px bg-slate-200 dark:bg-slate-700" />
+              <div>
+                <p className="text-lg font-semibold text-slate-800 dark:text-slate-100 leading-tight">
+                  {totalClicks}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Clicks</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 ml-auto">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                  Show on page
+                </span>
+                <Toggle
+                  checked={showViewCount}
+                  onChange={handleToggleShowViewCount}
+                  disabled={togglingViewCount}
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={onViewAnalytics}
+                className="whitespace-nowrap px-3 py-1.5 bg-white dark:bg-slate-800 border border-[#2D5A27] dark:border-[#4CAF50] hover:bg-[#2D5A27]/5 dark:hover:bg-[#4CAF50]/10 text-[#2D5A27] dark:text-[#4CAF50] font-medium text-xs rounded-lg transition cursor-pointer"
+              >
+                View analytics →
+              </button>
+            </div>
           </div>
         </div>
       )}

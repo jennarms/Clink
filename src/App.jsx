@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { PrivacyPolicy, TermsOfService } from './components/AboutWebsite';
 import AccountSettings from './components/AccountSettings';
+import AnalyticsPage from './components/AnalyticsPage';
 import AuthForm from './components/AuthForm';
 import ConfirmDeleteAccount from './components/confirm-delete-account';
 import Dashboard from './components/Dashboard';
@@ -19,6 +20,7 @@ const RESERVED_PATHS = [
   '/reset-password',
   '/edit-profile',
   '/account-settings',
+  '/analytics',
   '/confirm-delete-account',
   '/terms',
   '/privacy',
@@ -36,6 +38,9 @@ export default function App() {
   );
   const [isAccountSettings, setIsAccountSettings] = useState(
     window.location.pathname === '/account-settings'
+  );
+  const [isViewingAnalytics, setIsViewingAnalytics] = useState(
+    window.location.pathname === '/analytics'
   );
   const [isConfirmingDeletion, setIsConfirmingDeletion] = useState(
     window.location.pathname === '/confirm-delete-account'
@@ -68,6 +73,7 @@ export default function App() {
         setIsResettingPassword(false);
         setIsEditingProfile(false);
         setIsAccountSettings(false);
+        setIsViewingAnalytics(false);
         setIsConfirmingDeletion(false);
         setIsViewingTerms(false);
         setIsViewingPrivacy(false);
@@ -119,6 +125,7 @@ export default function App() {
     window.history.pushState({}, '', '/');
     setIsEditingProfile(false);
     setIsAccountSettings(false);
+    setIsViewingAnalytics(false);
     setIsConfirmingDeletion(false);
     setIsViewingTerms(false);
     setIsViewingPrivacy(false);
@@ -128,13 +135,22 @@ export default function App() {
     window.history.pushState({}, '', '/edit-profile');
     setIsEditingProfile(true);
     setIsAccountSettings(false);
+    setIsViewingAnalytics(false);
   };
 
   const goToAccountSettings = () => {
     window.history.pushState({}, '', '/account-settings');
     setIsAccountSettings(true);
     setIsEditingProfile(false);
+    setIsViewingAnalytics(false);
     refreshSession(); // catch any email confirmation that happened elsewhere
+  };
+
+  const goToAnalytics = () => {
+    window.history.pushState({}, '', '/analytics');
+    setIsViewingAnalytics(true);
+    setIsEditingProfile(false);
+    setIsAccountSettings(false);
   };
 
   const handleProfileSaved = () => {
@@ -150,6 +166,7 @@ export default function App() {
     setProfile(null);
     setIsAccountSettings(false);
     setIsEditingProfile(false);
+    setIsViewingAnalytics(false);
     setIsConfirmingDeletion(false);
   };
 
@@ -226,8 +243,19 @@ export default function App() {
                 onRefreshSession={refreshSession}
                 onAccountDeleted={handleAccountDeleted}
               />
+            ) : isViewingAnalytics ? (
+              <AnalyticsPage
+                session={session}
+                profile={profile}
+                onBack={goToDashboard}
+              />
             ) : (
-              <Dashboard session={session} profile={profile} onEditProfile={goToEditProfile} />
+              <Dashboard
+                session={session}
+                profile={profile}
+                onEditProfile={goToEditProfile}
+                onViewAnalytics={goToAnalytics}
+              />
             )}
           </div>
         </div>
