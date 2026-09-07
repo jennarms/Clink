@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import AddLinkForm from './AddLinkForm';
 import BackgroundColorPicker from './BackgroundColorPicker';
+import EmbedPlayer from './EmbedPlayer';
 import LinkList from './LinkList';
 import PagePreviewCard from './PagePreviewCard';
 import ShareProfileButton from './ShareProfileButton';
-import SpotifyEmbed from './SpotifyEmbed';
 
 const LONG_PRESS_MS = 450;
 
@@ -328,8 +328,12 @@ export default function Dashboard({ session, profile, onEditProfile, onViewAnaly
                     )}
                   </div>
 
-                    {profile.spotify_url && (
-                    <SpotifyEmbed url={profile.spotify_url} className="mb-4" />
+                  {profile.embed_url && profile.embed_platform && (
+                    <EmbedPlayer
+                      url={profile.embed_url}
+                      platform={profile.embed_platform}
+                      className="mb-4"
+                    />
                   )}
 
                   <div className="flex items-stretch gap-2">

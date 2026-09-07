@@ -1,6 +1,6 @@
 import { cardStyle, luminance } from '../lib/linkStyles';
+import SpotifyEmbed from './EmbedPlayer';
 import RenderIcon from './RenderIcon';
-import SpotifyEmbed from './SpotifyEmbed';
 
 const DEFAULT_BG = '#F9F8F3';
 

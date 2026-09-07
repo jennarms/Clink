@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { cardStyle, luminance } from '../lib/linkStyles';
 import { supabase } from '../supabaseClient';
+import EmbedPlayer from './EmbedPlayer';
 import RenderIcon from './RenderIcon';
 import ShareProfileButton from './ShareProfileButton';
-import SpotifyEmbed from './SpotifyEmbed';
 
 const DEFAULT_BG = '#F9F8F3';
 
@@ -42,15 +42,8 @@ export default function PublicProfile({ username }) {
   const [links, setLinks] = useState([]);
   const [revealed, setRevealed] = useState(false);
 
-  // The Dashboard's "Preview" button opens this exact same route in a
-  // new tab, so without a flag there's no way to tell a real visitor
-  // apart from the owner checking their own page. That flag disables
-  // both view and click tracking below.
   const isPreview = new URLSearchParams(window.location.search).get('preview') === '1';
 
-  // Guards against double-firing the view increment — React 18 Strict
-  // Mode runs effects twice in dev, and this is the kind of side effect
-  // (a write) that shouldn't run twice just because of that.
   const hasTrackedView = useRef(false);
 
   useEffect(() => {
@@ -59,7 +52,7 @@ export default function PublicProfile({ username }) {
     async function loadProfile() {
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('id, username, display_name, bio, avatar_url, theme_color, background_type, background_value, spotify_url, view_count, show_view_count')
+        .select('id, username, display_name, bio, avatar_url, theme_color, background_type, background_value, embed_url, embed_platform, view_count, show_view_count')
         .eq('username', username)
         .single();
 
@@ -95,8 +88,6 @@ export default function PublicProfile({ username }) {
     };
   }, [username]);
 
-  // Trigger the entrance fade/slide once content is ready, on the next
-  // frame so the transition actually animates instead of snapping in.
   useEffect(() => {
     if (status === 'found') {
       const id = requestAnimationFrame(() => setRevealed(true));
@@ -104,11 +95,8 @@ export default function PublicProfile({ username }) {
     }
   }, [status]);
 
-  // Fire-and-forget view tracking. This intentionally doesn't block or
-  // affect rendering in any way — if it fails (offline, RPC missing,
-  // whatever), the visitor should never notice.
   useEffect(() => {
-    if (isPreview) return; // owner previewing their own page — don't count it
+    if (isPreview) return;
     if (status === 'found' && !hasTrackedView.current) {
       hasTrackedView.current = true;
       supabase.rpc('increment_profile_view', { p_username: username }).then(
@@ -119,9 +107,7 @@ export default function PublicProfile({ username }) {
   }, [status, username, isPreview]);
 
   const handleLinkClick = (linkId) => {
-    if (isPreview) return; // owner previewing their own page — don't count it
-    // Also fire-and-forget — the <a> tag's default navigation isn't
-    // blocked waiting on this.
+    if (isPreview) return;
     supabase.rpc('increment_link_click', { p_link_id: linkId }).then(
       () => {},
       () => {}
@@ -165,18 +151,9 @@ export default function PublicProfile({ username }) {
   const avatarFallbackText = isDark ? '#F1F5F9' : '#2D5A27';
   const displayName = profile.display_name || '@' + profile.username;
 
-  // Pulled out separately so it can render as its own bigger, pinned
-  // card above the regular list — good for a current drop/launch/single
-  // that should visually outrank everything else on the page.
   const featuredLink = links.find((l) => l.is_featured);
   const regularLinks = links.filter((l) => !l.is_featured);
 
-  // Corner circle-button styling. Backgrounds are fully user-customizable,
-  // so rather than tying the circle's color to the page theme, it's a
-  // frosted glass disc — translucent white + blur + soft shadow. The
-  // glass itself is always the same neutral surface no matter what's
-  // behind it, so it stays legible everywhere while looking a lot softer
-  // than a flat solid-color disc.
   const circleBg = 'rgba(255,255,255,0.55)';
   const circleBorder = 'rgba(255,255,255,0.65)';
   const circleIconColor = '#1A1A1A';
@@ -190,9 +167,6 @@ export default function PublicProfile({ username }) {
       }
     : { background: pageBg };
 
-  // Image backgrounds vary too much to guarantee text contrast, so the
-  // header sits on a translucent glass panel instead of directly on the
-  // photo — keeps it readable no matter what's behind it.
   const headerWrapStyle = isImageBg
     ? {
         background: 'rgba(255,255,255,0.72)',
@@ -206,12 +180,10 @@ export default function PublicProfile({ username }) {
       className="min-h-screen flex flex-col items-center px-4 py-14 transition-colors relative"
       style={pageStyle}
     >
-      {/* Share this profile — top-left corner */}
       <div className="fixed top-4 left-4 z-40">
         <ShareProfileButton username={profile.username} profile={profile} variant="icon" />
       </div>
 
-      {/* Create your own Clink — top-right corner */}
       <a
         href="/?signup=1"
         aria-label="Create your own Clink"
@@ -281,8 +253,8 @@ export default function PublicProfile({ username }) {
           )}
         </div>
 
-        {profile.spotify_url && (
-          <SpotifyEmbed url={profile.spotify_url} label={false} className="mb-6" />
+        {profile.embed_url && profile.embed_platform && (
+          <EmbedPlayer url={profile.embed_url} platform={profile.embed_platform} className="mb-6" />
         )}
 
         {featuredLink && (() => {
