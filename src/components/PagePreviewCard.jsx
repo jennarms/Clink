@@ -1,5 +1,6 @@
+import { detectEmbedPlatform } from '../lib/embeds';
 import { cardStyle, luminance } from '../lib/linkStyles';
-import SpotifyEmbed from './EmbedPlayer';
+import EmbedPlayer from './EmbedPlayer';
 import RenderIcon from './RenderIcon';
 
 const DEFAULT_BG = '#F9F8F3';
@@ -11,7 +12,9 @@ const DEFAULT_BG = '#F9F8F3';
 // the dashboard, and disabling pointer events also disables scrolling
 // inside the iframe itself, which is why it looked "stuck" before.
 // Rendering from `profile` + `links` (already in memory) sidesteps all of
-// that and mirrors PublicProfile's own background/contrast logic exactly.
+// that and mirrors PublicProfile's own background/contrast, featured-link,
+// and per-link embed logic exactly — so this card and the real page never
+// disagree about what should show up or how.
 //
 // Sizing is responsive to the viewport the dashboard itself is being
 // viewed on: roughly phone-width on small screens, and noticeably larger
@@ -33,8 +36,10 @@ export default function PagePreviewCard({ profile, links }) {
   const displayName = profile.display_name || '@' + profile.username;
 
   const activeLinks = (links || []).filter((l) => l.is_active !== false);
-  const shownLinks = activeLinks.slice(0, 4);
-  const remaining = activeLinks.length - shownLinks.length;
+  const featuredLink = activeLinks.find((l) => l.is_featured);
+  const regularLinks = activeLinks.filter((l) => !l.is_featured);
+  const shownLinks = regularLinks.slice(0, 4);
+  const remaining = regularLinks.length - shownLinks.length;
 
   const pageStyle = isImageBg
     ? {
@@ -78,13 +83,48 @@ export default function PagePreviewCard({ profile, links }) {
           </p>
         )}
 
-        {profile.spotify_url && (
-          <div className="w-full mb-4">
-            <SpotifyEmbed url={profile.spotify_url} label={false} compact />
-          </div>
-        )}
+        {featuredLink && (() => {
+          const accent = featuredLink.accent_color || '#2D5A27';
+          const style = featuredLink.style || 'solid';
+          const boxStyle = cardStyle(accent, style, isDark);
+          const iconBg = style === 'solid' ? 'rgba(255,255,255,0.2)' : accent + '1A';
 
-        {shownLinks.length === 0 ? (
+          return (
+            <div
+              className="relative w-full rounded-xl sm:rounded-2xl font-semibold shadow-md mb-4 overflow-hidden text-left"
+              style={boxStyle}
+            >
+              <span
+                className="absolute top-2 right-2 sm:top-3 sm:right-3 text-[9px] sm:text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full"
+                style={{ background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(4px)' }}
+              >
+                ★ Featured
+              </span>
+
+              {featuredLink.image_url ? (
+                <img src={featuredLink.image_url} alt="" className="w-full h-20 sm:h-28 object-cover" />
+              ) : (
+                <div
+                  className="w-full h-14 sm:h-20 flex items-center justify-center"
+                  style={{ background: iconBg }}
+                >
+                  <RenderIcon iconKey={featuredLink.icon} className="w-6 h-6 sm:w-8 sm:h-8" />
+                </div>
+              )}
+
+              <div className="px-3 py-2.5 sm:px-4 sm:py-3">
+                <div className="text-xs sm:text-sm truncate">{featuredLink.title}</div>
+                {featuredLink.description && (
+                  <div className="text-[10px] sm:text-xs font-normal truncate mt-0.5" style={{ opacity: 0.85 }}>
+                    {featuredLink.description}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
+
+        {shownLinks.length === 0 && !featuredLink ? (
           <p className="text-[11px] sm:text-xs" style={{ color: handleColor }}>No links yet.</p>
         ) : (
           <div className="w-full space-y-2 sm:space-y-3">
@@ -93,6 +133,30 @@ export default function PagePreviewCard({ profile, links }) {
               const style = link.style || 'solid';
               const boxStyle = cardStyle(accent, style, isDark);
               const iconBg = style === 'solid' ? 'rgba(255,255,255,0.2)' : accent + '1A';
+
+              // Same check PublicProfile uses: recomputed from the saved
+              // URL rather than trusting is_embed alone, so a link never
+              // shows a broken/empty player if the matcher rules change.
+              const embedPlatform = detectEmbedPlatform(link.url);
+              const isEmbed = link.is_embed && embedPlatform;
+
+              if (isEmbed) {
+                return (
+                  <div key={link.id} className="w-full rounded-lg sm:rounded-xl overflow-hidden" style={boxStyle}>
+                    <div className="px-3 pt-2 pb-1.5 sm:px-4 sm:pt-3 sm:pb-2 text-left">
+                      <div className="text-[12px] sm:text-sm font-medium truncate">{link.title}</div>
+                      {link.description && (
+                        <div className="text-[10px] sm:text-xs truncate mt-0.5" style={{ opacity: 0.85 }}>
+                          {link.description}
+                        </div>
+                      )}
+                    </div>
+                    <div className="px-1.5 pb-1.5 sm:px-2 sm:pb-2">
+                      <EmbedPlayer url={link.url} platform={embedPlatform} />
+                    </div>
+                  </div>
+                );
+              }
 
               return (
                 <div
