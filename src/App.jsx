@@ -67,16 +67,24 @@ export default function App() {
         setIsResettingPassword(true);
       }
       if (event === 'SIGNED_IN') {
-        // Always land on the dashboard after logging in or signing up,
-        // no matter which page (e.g. /terms, /privacy) they came from.
-        window.history.pushState({}, '', '/');
-        setIsResettingPassword(false);
-        setIsEditingProfile(false);
-        setIsAccountSettings(false);
-        setIsViewingAnalytics(false);
-        setIsConfirmingDeletion(false);
-        setIsViewingTerms(false);
-        setIsViewingPrivacy(false);
+        // Supabase can re-emit SIGNED_IN for reasons other than an actual
+        // fresh login/signup — session rehydration on page load, auto
+        // token refresh, multi-tab session sync, etc. If one of those
+        // fires while someone is just viewing a public Clink page, don't
+        // yank them into the dashboard: only force the redirect when
+        // they're on one of the app's own (reserved) routes.
+        if (RESERVED_PATHS.includes(window.location.pathname)) {
+          // Always land on the dashboard after logging in or signing up,
+          // no matter which page (e.g. /terms, /privacy) they came from.
+          window.history.pushState({}, '', '/');
+          setIsResettingPassword(false);
+          setIsEditingProfile(false);
+          setIsAccountSettings(false);
+          setIsViewingAnalytics(false);
+          setIsConfirmingDeletion(false);
+          setIsViewingTerms(false);
+          setIsViewingPrivacy(false);
+        }
       }
     });
 

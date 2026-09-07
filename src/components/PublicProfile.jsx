@@ -42,6 +42,12 @@ export default function PublicProfile({ username }) {
   const [links, setLinks] = useState([]);
   const [revealed, setRevealed] = useState(false);
 
+  // The Dashboard's "Preview" button opens this exact same route in a
+  // new tab, so without a flag there's no way to tell a real visitor
+  // apart from the owner checking their own page. That flag disables
+  // both view and click tracking below.
+  const isPreview = new URLSearchParams(window.location.search).get('preview') === '1';
+
   // Guards against double-firing the view increment — React 18 Strict
   // Mode runs effects twice in dev, and this is the kind of side effect
   // (a write) that shouldn't run twice just because of that.
@@ -102,6 +108,7 @@ export default function PublicProfile({ username }) {
   // affect rendering in any way — if it fails (offline, RPC missing,
   // whatever), the visitor should never notice.
   useEffect(() => {
+    if (isPreview) return; // owner previewing their own page — don't count it
     if (status === 'found' && !hasTrackedView.current) {
       hasTrackedView.current = true;
       supabase.rpc('increment_profile_view', { p_username: username }).then(
@@ -109,9 +116,10 @@ export default function PublicProfile({ username }) {
         () => {}
       );
     }
-  }, [status, username]);
+  }, [status, username, isPreview]);
 
   const handleLinkClick = (linkId) => {
+    if (isPreview) return; // owner previewing their own page — don't count it
     // Also fire-and-forget — the <a> tag's default navigation isn't
     // blocked waiting on this.
     supabase.rpc('increment_link_click', { p_link_id: linkId }).then(

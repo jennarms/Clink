@@ -209,7 +209,7 @@ export default function Dashboard({ session, profile, onEditProfile, onViewAnaly
 
           <div className="relative shrink-0">
             <a
-              href={`/${profile.username}`}
+              href={`/${profile.username}?preview=1`}
               target="_blank"
               rel="noopener noreferrer"
               onMouseEnter={() => setShowPreview(true)}
