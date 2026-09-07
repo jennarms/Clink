@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { LuCheck, LuImage, LuPalette, LuPencil, LuX } from 'react-icons/lu';
+import { LuCheck, LuImage, LuPalette, LuPencil, LuStar, LuX } from 'react-icons/lu';
 import { useTheme } from '../context/useTheme';
 import { PALETTE, QUICK_ICONS, STYLES, cardStyle } from '../lib/linkStyles';
 import { supabase } from '../supabaseClient';
@@ -14,6 +14,7 @@ export default function LinkItem({
   userId,
   onDeleteLink,
   onUpdateLink,
+  onFeatureLink,
   isDragging,
   isDragOver,
   onDragStart,
@@ -202,7 +203,13 @@ export default function LinkItem({
 
   const cardBoxStyle = cardStyle(accent, style, isDark);
   const isEditingAnything = activePanel !== 'none';
-  const borderColor = isEditingAnything ? accent : isDragOver ? accent : 'transparent';
+  const borderColor = isEditingAnything
+    ? accent
+    : isDragOver
+    ? accent
+    : link.is_featured
+    ? '#F59E0B'
+    : 'transparent';
   const handleColor = style === 'solid' ? 'rgba(255,255,255,0.55)' : `${accent}80`;
   const displaySubtitle = description || url;
   const displayImage = imagePreview;
@@ -216,7 +223,11 @@ export default function LinkItem({
       }`}
       style={{
         border: '1.5px solid ' + borderColor,
-        boxShadow: isEditingAnything ? `0 2px 12px ${accent}22` : 'none',
+        boxShadow: isEditingAnything
+          ? `0 2px 12px ${accent}22`
+          : link.is_featured
+          ? '0 2px 8px rgba(245,158,11,0.15)'
+          : 'none',
       }}
     >
       <div
@@ -296,6 +307,16 @@ export default function LinkItem({
             isEditingAnything ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus-within:opacity-100'
           }`}
         >
+          <button
+            type="button"
+            onClick={() => onFeatureLink?.(link.id)}
+            className={`p-1.5 rounded-lg hover:bg-black/10 transition-colors cursor-pointer ${
+              link.is_featured ? 'text-amber-500' : ''
+            }`}
+            title={link.is_featured ? 'Remove as featured' : 'Set as featured'}
+          >
+            <LuStar className="w-4 h-4" fill={link.is_featured ? 'currentColor' : 'none'} />
+          </button>
           <button
             type="button"
             onClick={() => togglePanel('edit')}

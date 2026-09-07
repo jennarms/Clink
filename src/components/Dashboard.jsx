@@ -145,6 +145,29 @@ export default function Dashboard({ session, profile, onEditProfile, onViewAnaly
     setLinks((prev) => prev.map((l) => (l.id === id ? { ...l, ...patch } : l)));
   };
 
+  // Featuring is exclusive — only one link per user can be featured at
+  // once — so this goes through an RPC that atomically unsets whichever
+  // link currently holds it before setting (or clearing) the new one,
+  // rather than doing two separate updates from the client.
+  const handleFeatureLink = async (linkId) => {
+    const link = links.find((l) => l.id === linkId);
+    const nextFeaturedId = link?.is_featured ? null : linkId; // clicking the current featured link un-features it
+
+    setLinks((prev) =>
+      prev.map((l) => ({ ...l, is_featured: l.id === nextFeaturedId }))
+    ); // optimistic
+
+    const { error } = await supabase.rpc('set_featured_link', {
+      p_user_id: userId,
+      p_link_id: nextFeaturedId,
+    });
+
+    if (error) {
+      alert(error.message);
+      refetchLinks(); // revert to server truth
+    }
+  };
+
   const handleReorderLinks = async (newLinks) => {
     setLinks(newLinks); // optimistic
 
@@ -364,6 +387,7 @@ export default function Dashboard({ session, profile, onEditProfile, onViewAnaly
                 onDeleteLink={handleDeleteLink}
                 onUpdateLink={handleUpdateLink}
                 onReorderLinks={handleReorderLinks}
+                onFeatureLink={handleFeatureLink}
               />
             )}
           </div>

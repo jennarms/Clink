@@ -74,7 +74,7 @@ export default function PublicProfile({ username }) {
 
       const { data: linksData, error: linksError } = await supabase
         .from('links')
-        .select('id, title, url, description, icon, accent_color, style, image_url')
+        .select('id, title, url, description, icon, accent_color, style, image_url, is_featured')
         .eq('user_id', profileData.id)
         .eq('is_active', true)
         .order('sort_order', { ascending: true, nullsFirst: false })
@@ -164,6 +164,12 @@ export default function PublicProfile({ username }) {
   const avatarFallbackBg = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(45,90,39,0.15)';
   const avatarFallbackText = isDark ? '#F1F5F9' : '#2D5A27';
   const displayName = profile.display_name || '@' + profile.username;
+
+  // Pulled out separately so it can render as its own bigger, pinned
+  // card above the regular list — good for a current drop/launch/single
+  // that should visually outrank everything else on the page.
+  const featuredLink = links.find((l) => l.is_featured);
+  const regularLinks = links.filter((l) => !l.is_featured);
 
   // Corner circle-button styling. Backgrounds are fully user-customizable,
   // so rather than tying the circle's color to the page theme, it's a
@@ -279,11 +285,60 @@ export default function PublicProfile({ username }) {
           <SpotifyEmbed url={profile.spotify_url} label={false} className="mb-6" />
         )}
 
-        {links.length === 0 ? (
+        {featuredLink && (() => {
+          const accent = featuredLink.accent_color || '#2D5A27';
+          const style = featuredLink.style || 'solid';
+          const boxStyle = cardStyle(accent, style, isDark);
+          const iconBg = style === 'solid' ? 'rgba(255,255,255,0.2)' : accent + '1A';
+
+          return (
+            <a
+              href={featuredLink.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => handleLinkClick(featuredLink.id)}
+              className="relative flex flex-col w-full rounded-2xl font-semibold shadow-lg transition-transform hover:-translate-y-0.5 mb-5 overflow-hidden"
+              style={boxStyle}
+            >
+              <span
+                className="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-full"
+                style={{ background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(4px)' }}
+              >
+                ★ Featured
+              </span>
+
+              {featuredLink.image_url ? (
+                <img
+                  src={featuredLink.image_url}
+                  alt=""
+                  className="w-full h-40 object-cover"
+                />
+              ) : (
+                <div
+                  className="w-full h-24 flex items-center justify-center"
+                  style={{ background: iconBg }}
+                >
+                  <RenderIcon iconKey={featuredLink.icon} className="w-10 h-10" />
+                </div>
+              )}
+
+              <div className="px-5 py-4 text-left">
+                <div className="text-base">{featuredLink.title}</div>
+                {featuredLink.description && (
+                  <div className="text-xs font-normal mt-1" style={{ opacity: 0.85 }}>
+                    {featuredLink.description}
+                  </div>
+                )}
+              </div>
+            </a>
+          );
+        })()}
+
+        {regularLinks.length === 0 && !featuredLink ? (
           <p className="text-xs text-center" style={{ color: handleColor }}>No links here yet.</p>
         ) : (
           <div className="space-y-3">
-            {links.map((link) => {
+            {regularLinks.map((link) => {
               const accent = link.accent_color || '#2D5A27';
               const style = link.style || 'solid';
               const boxStyle = cardStyle(accent, style, isDark);

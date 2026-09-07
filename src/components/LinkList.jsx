@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import LinkItem from './LinkItem';
 
-export default function LinkList({ links, userId, onDeleteLink, onUpdateLink, onReorderLinks }) {
+export default function LinkList({ links, userId, onDeleteLink, onUpdateLink, onReorderLinks, onFeatureLink }) {
   const [draggedId, setDraggedId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
 
@@ -62,6 +62,7 @@ export default function LinkList({ links, userId, onDeleteLink, onUpdateLink, on
           userId={userId}
           onDeleteLink={onDeleteLink}
           onUpdateLink={onUpdateLink}
+          onFeatureLink={onFeatureLink}
           isDragging={draggedId === link.id}
           isDragOver={dragOverId === link.id && draggedId !== link.id}
           onDragStart={() => handleDragStart(link.id)}
