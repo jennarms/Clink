@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { cardStyle, luminance } from '../lib/linkStyles';
 import { supabase } from '../supabaseClient';
 import RenderIcon from './RenderIcon';
+import ShareProfileButton from './ShareProfileButton';
 import SpotifyEmbed from './SpotifyEmbed';
 
 const DEFAULT_BG = '#F9F8F3';
@@ -156,6 +157,16 @@ export default function PublicProfile({ username }) {
   const avatarFallbackText = isDark ? '#F1F5F9' : '#2D5A27';
   const displayName = profile.display_name || '@' + profile.username;
 
+  // Corner circle-button styling. Backgrounds are fully user-customizable,
+  // so rather than tying the circle's color to the page theme, it's a
+  // frosted glass disc — translucent white + blur + soft shadow. The
+  // glass itself is always the same neutral surface no matter what's
+  // behind it, so it stays legible everywhere while looking a lot softer
+  // than a flat solid-color disc.
+  const circleBg = 'rgba(255,255,255,0.55)';
+  const circleBorder = 'rgba(255,255,255,0.65)';
+  const circleIconColor = '#1A1A1A';
+
   const pageStyle = isImageBg
     ? {
         backgroundImage: `url(${bgValue})`,
@@ -178,9 +189,42 @@ export default function PublicProfile({ username }) {
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center px-4 py-14 transition-colors"
+      className="min-h-screen flex flex-col items-center px-4 py-14 transition-colors relative"
       style={pageStyle}
     >
+      {/* Share this profile — top-left corner */}
+      <div className="fixed top-4 left-4 z-40">
+        <ShareProfileButton username={profile.username} profile={profile} variant="icon" />
+      </div>
+
+      {/* Create your own Clink — top-right corner */}
+      <a
+        href="/?signup=1"
+        aria-label="Create your own Clink"
+        className="fixed top-4 right-4 z-40 w-14 h-14 flex items-center justify-center rounded-full backdrop-blur-md hover:scale-110 active:scale-95 transition"
+        style={{
+          background: circleBg,
+          border: `1px solid ${circleBorder}`,
+          backdropFilter: 'blur(14px)',
+          WebkitBackdropFilter: 'blur(14px)',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.4)',
+        }}
+      >
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke={circleIconColor}
+          strokeWidth="2.25"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+      </a>
+
       <div
         className="w-full max-w-sm transition-all duration-500 ease-out"
         style={{
@@ -275,19 +319,7 @@ export default function PublicProfile({ username }) {
           </div>
         )}
 
-        <a
-          href="/?signup=1"
-          className="flex items-center justify-center gap-1.5 w-full py-2.5 px-4 mt-8 rounded-xl text-xs font-medium transition-colors"
-          style={{
-            color: handleColor,
-            background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
-            border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}`,
-          }}
-        >
-          Create your own Clink
-        </a>
-
-        <p className="text-center text-[11px] mt-4" style={{ color: footerColor }}>
+        <p className="text-center text-[11px] mt-8" style={{ color: footerColor }}>
           Made with Clink
         </p>
       </div>

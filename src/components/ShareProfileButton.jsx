@@ -4,7 +4,7 @@ import { luminance } from '../lib/linkStyles';
 
 const DEFAULT_BG = '#F9F8F3';
 
-export default function ShareProfileButton({ username, profile }) {
+export default function ShareProfileButton({ username, profile, variant = 'pill' }) {
   const [showModal, setShowModal] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -27,6 +27,16 @@ export default function ShareProfileButton({ username, profile }) {
   const mutedColor = isDark ? '#94A3B8' : '#64748B';
   const rowBg = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)';
   const rowBorder = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)';
+
+  // Icon-button (corner circle) styling. Backgrounds are fully
+  // user-customizable, so rather than tying the circle's color to the
+  // page theme, it's a frosted glass disc — translucent white + blur +
+  // soft shadow. The glass itself is always the same neutral surface no
+  // matter what's behind it, so it stays legible everywhere while
+  // looking a lot softer than a flat solid-color disc.
+  const circleBg = 'rgba(255,255,255,0.55)';
+  const circleBorder = 'rgba(255,255,255,0.65)';
+  const circleIconColor = '#1A1A1A';
 
   const cardBgStyle = isImageBg
     ? {
@@ -212,12 +222,44 @@ export default function ShareProfileButton({ username, profile }) {
 
   return (
     <>
-      <button
-        onClick={() => setShowModal(true)}
-        className="w-full h-full flex items-center justify-center gap-1.5 whitespace-nowrap py-2.5 bg-white dark:bg-slate-800 border border-[#2D5A27] dark:border-[#4CAF50] hover:bg-[#2D5A27]/5 dark:hover:bg-[#4CAF50]/10 text-[#2D5A27] dark:text-[#4CAF50] font-medium text-sm rounded-xl transition cursor-pointer shadow-sm mb-4"
-      >
-        Share Profile
-      </button>
+      {variant === 'icon' ? (
+        <button
+          onClick={() => setShowModal(true)}
+          aria-label="Share profile"
+          className="w-14 h-14 flex items-center justify-center rounded-full backdrop-blur-md hover:scale-110 active:scale-95 transition cursor-pointer"
+          style={{
+            background: circleBg,
+            border: `1px solid ${circleBorder}`,
+            backdropFilter: 'blur(14px)',
+            WebkitBackdropFilter: 'blur(14px)',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.4)',
+          }}
+        >
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke={circleIconColor}
+            strokeWidth="2.25"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="18" cy="5" r="3" />
+            <circle cx="6" cy="12" r="3" />
+            <circle cx="18" cy="19" r="3" />
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+          </svg>
+        </button>
+      ) : (
+        <button
+          onClick={() => setShowModal(true)}
+          className="w-full h-full flex items-center justify-center gap-1.5 whitespace-nowrap py-2.5 bg-white dark:bg-slate-800 border border-[#2D5A27] dark:border-[#4CAF50] hover:bg-[#2D5A27]/5 dark:hover:bg-[#4CAF50]/10 text-[#2D5A27] dark:text-[#4CAF50] font-medium text-sm rounded-xl transition cursor-pointer shadow-sm mb-4"
+        >
+          Share Profile
+        </button>
+      )}
 
       {showModal && (
         <div
