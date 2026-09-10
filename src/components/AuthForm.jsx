@@ -1,15 +1,23 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 
 // A handful of generic categories, not real brand logos — just enough
-// to sketch "here's what a Clink page looks like" at a glance.
+// to sketch "here's what a Clink page looks like" at a glance. Each one
+// gets its own accent color/bg on purpose: the real product lets people
+// pick a color per link, so this mockup should look like a page that
+// actually used that feature, not a flat placeholder list.
 const PREVIEW_LINKS = [
-  { emoji: '🎵', label: 'Music' },
-  { emoji: '📸', label: 'Photos' },
-  { emoji: '▶️', label: 'Videos' },
-  { emoji: '🛍️', label: 'Shop' },
-  { emoji: '🌐', label: 'Portfolio' },
+  { emoji: '🎵', label: 'Music', bg: '#EAF3E5', text: '#2D5A27' },
+  { emoji: '📸', label: 'Photos', bg: '#FDECEC', text: '#B3432E' },
+  { emoji: '▶️', label: 'Videos', bg: '#EAF1FB', text: '#2A5C99' },
+  { emoji: '🛍️', label: 'Shop', bg: '#FFF3DE', text: '#966B1F' },
+  { emoji: '🌐', label: 'Portfolio', bg: '#F3ECFB', text: '#6B4796' },
 ];
+
+// Short feature callouts, woven into the copy as a plain inline line
+// rather than a row of emoji pill badges — badges like that are an
+// instantly recognizable "generated landing page" tell.
+const FEATURE_LIST = ['Custom themes', 'QR sharing', 'Analytics'];
 
 // Usernames that would collide with an app route (e.g. Clink.com/login
 // would be ambiguous with the login page) or otherwise cause confusion.
@@ -62,6 +70,16 @@ export default function AuthForm() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+
+  // Drives the staggered entrance animation on the preview card's link
+  // rows — flips true one frame after mount so the transition actually
+  // animates in rather than snapping straight to its resting state.
+  const [previewRevealed, setPreviewRevealed] = useState(false);
+
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setPreviewRevealed(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
 
   // Non-blocking password strength check
   const getPasswordStrength = (pass) => {
@@ -494,40 +512,102 @@ export default function AuthForm() {
         {/* Left: about panel */}
         <div className="md:w-[58%] bg-[#EAF3E5] px-8 py-14 sm:px-16 md:px-20 md:py-0 flex items-center relative overflow-hidden">
           <div className="max-w-xl mx-auto">
-            <span className="inline-block text-xs font-semibold tracking-widest uppercase text-[#2D5A27]/70 mb-5">
-              Clink.com/yourname
-            </span>
-            <h1 className="text-4xl sm:text-5xl font-bold text-[#1A1A1A] leading-tight mb-5">
+            {/* Mock browser address bar instead of a floating eyebrow label —
+                ties directly to the preview card below and shows, rather than
+                tells, what Clink is. */}
+            <div className="inline-flex items-center gap-2 bg-white/70 border border-[#2D5A27]/15 rounded-full pl-3 pr-4 py-1.5 mb-8 shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-[#2D5A27]/40" />
+              <span className="text-xs font-medium text-[#2D5A27]/80 tracking-tight">
+                clink.com/yourname
+              </span>
+            </div>
+
+            <h1 className="text-4xl sm:text-5xl font-semibold text-[#1A1A1A] leading-[1.05] mb-5 tracking-tight">
               Every link you share.
               <br />
-              One click away.
+              <span className="font-serif italic font-normal text-[#2D5A27]">
+                One click away.
+              </span>
             </h1>
-            <p className="text-slate-600 text-base sm:text-lg leading-relaxed mb-10">
+
+            <p className="text-slate-600 text-base sm:text-lg leading-relaxed mb-6 max-w-md">
               Add your music, your shop, your latest video — whatever you
               want someone to see first. Clink puts it all behind one click,
               yours to arrange.
             </p>
 
-            {/* Signature element: a mini preview of a Clink page */}
-            <div className="bg-white rounded-2xl shadow-md border border-[#2D5A27]/10 p-6 max-w-md -rotate-1">
-              <div className="flex items-center gap-2 mb-4 px-1">
-                <div className="w-8 h-8 rounded-full bg-[#2D5A27]/15" />
-                <div className="h-2.5 w-24 rounded-full bg-[#2D5A27]/15" />
+            {/* A glimpse of the full product — themes, sharing, analytics —
+                folded into the copy as one quiet line instead of a row of
+                feature badges, which read as templated at a glance. */}
+            <p className="text-xs font-medium text-[#2D5A27]/60 tracking-wide uppercase mb-10">
+              {FEATURE_LIST.join('   ·   ')}
+            </p>
+
+            {/* Signature element: a mini preview of a Clink page, styled to
+                actually look like one — colored per-link accents, a real
+                avatar treatment, and a tiny view-count badge — rather than
+                a flat gray placeholder list. The floating circles at the
+                corners echo the real page's own share/create buttons. */}
+            <div className="relative max-w-md -rotate-1">
+              <div
+                className="absolute -top-3 -left-3 w-9 h-9 rounded-full bg-white shadow-md flex items-center justify-center text-[#2D5A27] z-10 transition-all duration-500"
+                style={{
+                  opacity: previewRevealed ? 1 : 0,
+                  transform: previewRevealed ? 'scale(1)' : 'scale(0.6)',
+                }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="18" cy="5" r="3" />
+                  <circle cx="6" cy="12" r="3" />
+                  <circle cx="18" cy="19" r="3" />
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                </svg>
               </div>
-              <div className="space-y-2.5">
-                {PREVIEW_LINKS.map((link, i) => (
-                  <div
-                    key={link.label}
-                    className={`flex items-center gap-3 bg-[#EAF3E5] rounded-xl px-4 py-3 transition-transform hover:-translate-y-0.5 ${
-                      i % 2 === 0 ? 'rotate-0' : 'rotate-[0.5deg]'
-                    }`}
-                  >
-                    <span className="text-lg leading-none">{link.emoji}</span>
-                    <span className="text-sm font-medium text-[#1A1A1A]">
-                      {link.label}
-                    </span>
-                  </div>
-                ))}
+
+              <div
+                className="absolute -top-3 -right-3 w-9 h-9 rounded-full bg-white shadow-md flex items-center justify-center text-[#2D5A27] text-lg font-medium z-10 transition-all duration-500 delay-100"
+                style={{
+                  opacity: previewRevealed ? 1 : 0,
+                  transform: previewRevealed ? 'scale(1)' : 'scale(0.6)',
+                }}
+              >
+                +
+              </div>
+
+              <div className="bg-white rounded-2xl shadow-md border border-[#2D5A27]/10 p-6">
+                <div className="flex flex-col items-center text-center mb-5">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#2D5A27]/25 to-[#2D5A27]/10 mb-2.5" />
+                  <div className="h-2.5 w-20 rounded-full bg-[#2D5A27]/15 mb-1.5" />
+                  <div className="h-2 w-12 rounded-full bg-[#2D5A27]/10" />
+                </div>
+
+                <div className="space-y-2.5">
+                  {PREVIEW_LINKS.map((link, i) => (
+                    <div
+                      key={link.label}
+                      className={`flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-500 hover:-translate-y-0.5 hover:shadow-sm ${
+                        i % 2 === 0 ? 'rotate-0' : 'rotate-[0.5deg]'
+                      }`}
+                      style={{
+                        background: link.bg,
+                        opacity: previewRevealed ? 1 : 0,
+                        transform: previewRevealed
+                          ? 'translateY(0)'
+                          : 'translateY(8px)',
+                        transitionDelay: `${150 + i * 80}ms`,
+                      }}
+                    >
+                      <span className="text-lg leading-none">{link.emoji}</span>
+                      <span
+                        className="text-sm font-medium"
+                        style={{ color: link.text }}
+                      >
+                        {link.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

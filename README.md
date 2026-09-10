@@ -1,16 +1,42 @@
-# React + Vite
+# Clink 🔗
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Every link you share. One click away.**
 
-Currently, two official plugins are available:
+Clink is a link-in-bio tool — a single page (`clink.com/yourname`) that collects everything you want people to find: your socials, your shop, your latest video, your favorite track. Instead of picking one link for your Instagram or TikTok bio, you share one Clink page that holds all of them.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+> 🚧 `https://clink-link.vercel.app`
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## What it does
 
-## Expanding the ESLint configuration
+- Build a public profile with your name, photo, bio, and a list of links
+- Style each link individually — pick a color, an icon, or a custom image
+- Set your page background to a solid color or an uploaded image
+- Drop in a Spotify link and it renders as a live player on your page
+- Share your page with a QR code, downloadable as a branded card
+- See how many people viewed your page and clicked each link — and choose whether your view count shows publicly
+- Everything's dark-mode aware and works on mobile
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## Why I built it
+
+> 🚧 A couple sentences here about what prompted this — a class project, wanting to learn Supabase/auth flows, replacing a Linktree subscription, etc. This is the part worth writing yourself; it's the most human part of the README.
+
+---
+
+## Built with
+
+React (Vite) · Tailwind CSS · Supabase (Postgres, Auth) · deployed on Vercel
+
+---
+
+## Screenshots
+
+> 🚧 Drop in 2-3 images here — the public profile page and the dashboard are the strongest ones to show. In Markdown:
+>
+> ```md
+> ![Public profile](./screenshots/public-profile.png)
+> ![Dashboard](./screenshots/dashboard.png)
+> ```
