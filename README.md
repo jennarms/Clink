@@ -22,7 +22,7 @@ Clink is a link-in-bio tool — a single page (`clink.com/yourname`) that collec
 
 ## Why I built it
 
-> 🚧 A couple sentences here about what prompted this — a class project, wanting to learn Supabase/auth flows, replacing a Linktree subscription, etc. This is the part worth writing yourself; it's the most human part of the README.
+> 🚧 I initially wanted to have a website replacing a Linktree subscription but afterwards I'm quite ignorant to figure out theres a lot of Linktree dupes out there hahaha but I pursued to develop this since im currently unemployed and waiting for my graduation, I have a lot of time to learn something and I want to learn Supabase/auth flows and overall have an experience in deploying my own website.
 
 ---
 
@@ -34,9 +34,4 @@ React (Vite) · Tailwind CSS · Supabase (Postgres, Auth) · deployed on Vercel
 
 ## Screenshots
 
-> 🚧 Drop in 2-3 images here — the public profile page and the dashboard are the strongest ones to show. In Markdown:
->
-> ```md
-> ![Public profile](./screenshots/public-profile.png)
-> ![Dashboard](./screenshots/dashboard.png)
-> ```
+> (TO UPDATE HEHEEHEH)
