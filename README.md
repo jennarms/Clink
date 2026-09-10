@@ -22,7 +22,7 @@ Clink is a link-in-bio tool — a single page (`clink.com/yourname`) that collec
 
 ## Why I built it
 
-> 🚧 I initially wanted to have a website replacing a Linktree subscription but afterwards I'm quite ignorant to figure out theres a lot of Linktree dupes out there hahaha but I pursued to develop this since im currently unemployed and waiting for my graduation, I have a lot of time to learn something and I want to learn Supabase/auth flows and overall have an experience in deploying my own website.
+> 🚧 I initially wanted to have a website replacing a Linktree subscription but afterwards I'm quite ignorant to figure out that theres a lot of Linktree dupes out there hahaha but I pursued to develop this since I'm currently unemployed and waiting for my graduation, I have a lot of time to learn something and I want to learn Supabase/auth flows and overall have an experience in deploying my own website.
 
 ---
 
